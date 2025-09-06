@@ -6,6 +6,8 @@ struct ArticleListView: View {
     @Query private var articles: [Article]
     
     let filter: ArticleFilter
+    
+    @State var searchText: String = ""
 
     var body: some View {
         List {
@@ -18,6 +20,13 @@ struct ArticleListView: View {
         }
         .contentMargins(.top, 2)
         .contentMargins(.horizontal, 5)
+        .navigationTitle(filter.displayName)
+        .navigationSubtitle("\(articles.count) articles")
+        .toolbarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search Articles")
+        .refreshable {
+            await refreshCurrentScope()
+        }
         .toolbar {
             ToolbarItem {
                 Button {
@@ -26,12 +35,18 @@ struct ArticleListView: View {
                     Label("Filter", systemImage: "line.3.horizontal.decrease")
                 }
             }
-        }
-        .navigationTitle(filter.displayName)
-        .navigationSubtitle("\(articles.count) articles")
-        .toolbarTitleDisplayMode(.inline)
-        .refreshable {
-            await refreshCurrentScope()
+            
+            ToolbarItem(placement: .bottomBar) {
+                Button {
+                    
+                } label: {
+                    Label("Mark all as read", systemImage: "circle.badge.checkmark.fill")
+                }
+            }
+            
+            ToolbarSpacer(.fixed, placement: .bottomBar)
+            
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
         }
     }
     

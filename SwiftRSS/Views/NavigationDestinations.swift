@@ -29,7 +29,6 @@ extension View {
                 }
                 .onAppear {
                     article.isRead = true
-                    try? article.modelContext?.save()
                 }
                 .ignoresSafeArea()
                 .navigationBarBackButtonHidden()

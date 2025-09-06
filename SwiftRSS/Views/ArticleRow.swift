@@ -72,7 +72,6 @@ struct ArticleRow: View {
         .swipeActions(edge: .leading) {
             Button {
                 article.isRead.toggle()
-                try? article.modelContext?.save()
             } label: {
                 Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "circle" : "checkmark")
             }
@@ -81,7 +80,6 @@ struct ArticleRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button {
                 article.isStarred.toggle()
-                try? article.modelContext?.save()
             } label: {
                 Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
             }

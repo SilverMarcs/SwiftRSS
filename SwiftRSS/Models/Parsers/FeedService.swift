@@ -103,14 +103,36 @@ struct FeedService {
 
     private static func saveItems(_ items: [FeedItem], into feed: Feed, context: ModelContext) throws {
         for item in items {
-            let article = Article(feed: feed,
+            // Check if article already exists by ID (which is the URL string)
+            let articleId = item.link.absoluteString
+            let predicate = #Predicate<Article> { article in
+                article.id == articleId
+            }
+            let existingArticles = try context.fetch(FetchDescriptor<Article>(predicate: predicate))
+            
+            let article: Article
+            if let existing = existingArticles.first {
+                // Update existing article (preserve isRead and isStarred)
+                article = existing
+                article.title = item.title
+                article.contentHTML = item.contentHTML
+                article.author = item.author
+                article.featuredImageURL = item.featuredImageURL
+                // Don't update publishedAt if it already exists to avoid date inconsistencies
+                if article.publishedAt == nil {
+                    article.publishedAt = item.publishedAt
+                }
+            } else {
+                // Create new article
+                article = Article(feed: feed,
                                   title: item.title,
                                   link: item.link,
                                   publishedAt: item.publishedAt)
-            article.contentHTML = item.contentHTML
-            article.author = item.author
-            article.featuredImageURL = item.featuredImageURL
-            context.insert(article)
+                article.contentHTML = item.contentHTML
+                article.author = item.author
+                article.featuredImageURL = item.featuredImageURL
+                context.insert(article)
+            }
         }
     }
 }
