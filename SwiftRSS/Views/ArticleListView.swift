@@ -39,28 +39,40 @@ struct ArticleListView: View {
     init(filter: ArticleFilter) {
         self.filter = filter
         
+        var descriptor: FetchDescriptor<Article>
+        
         switch filter {
         case .all:
-            _articles = Query(sort: \Article.publishedAt, order: .reverse)
+            descriptor = FetchDescriptor<Article>(
+                sortBy: [SortDescriptor(\Article.publishedAt, order: .reverse)]
+            )
+            
         case .unread:
-            _articles = Query(
-                filter: #Predicate<Article> { $0.isRead == false },
-                sort: \Article.publishedAt,
-                order: .reverse
+            descriptor = FetchDescriptor<Article>(
+                predicate: #Predicate<Article> { $0.isRead == false },
+                sortBy: [SortDescriptor(\Article.publishedAt, order: .reverse)]
             )
+            
         case .starred:
-            _articles = Query(
-                filter: #Predicate<Article> { $0.isStarred == true },
-                sort: \Article.publishedAt,
-                order: .reverse
+            descriptor = FetchDescriptor<Article>(
+                predicate: #Predicate<Article> { $0.isStarred == true },
+                sortBy: [SortDescriptor(\Article.publishedAt, order: .reverse)]
             )
+            
         case .feed(let feed):
             let feedID = feed.persistentModelID
-            let predicate = #Predicate<Article> { article in
-                article.feed.persistentModelID == feedID
-            }
-            _articles = Query(filter: predicate, sort: \Article.publishedAt, order: .reverse)
+            descriptor = FetchDescriptor<Article>(
+                predicate: #Predicate<Article> { article in
+                    article.feed.persistentModelID == feedID
+                },
+                sortBy: [SortDescriptor(\Article.publishedAt, order: .reverse)]
+            )
         }
+        
+        // Set the fetch limit to 100 for all cases
+        descriptor.fetchLimit = 100
+        
+        _articles = Query(descriptor)
     }
 
     private func refreshCurrentScope() async {

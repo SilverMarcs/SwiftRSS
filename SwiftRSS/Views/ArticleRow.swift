@@ -15,7 +15,7 @@ struct ArticleRow: View {
     let article: Article
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 10) {
             // Image at the top
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
@@ -35,7 +35,7 @@ struct ArticleRow: View {
                         Group {
                             if let imageURL = article.feed.thumbnailURL {
                                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
-                                    .clipShape(.rect(cornerRadius: 3))
+                                    .clipShape(.rect(cornerRadius: 4))
                             } else {
                                 Image(systemName: "dot.radiowaves.left.and.right")
                                     .imageScale(.small)
@@ -82,7 +82,7 @@ struct ArticleRow: View {
             } label: {
                 Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "circle" : "checkmark")
             }
-            .tint(.accent)
+            .tint(.blue)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button {
