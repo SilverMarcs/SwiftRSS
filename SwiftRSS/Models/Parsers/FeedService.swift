@@ -78,7 +78,19 @@ struct FeedService {
         let data = try await fetch(url: feed.url)
         let parsed = try parseFeed(data: data, url: feed.url)
         try saveItems(parsed.items, into: feed, context: context)
+        
+        context.autosaveEnabled = false
+        // Keep only top 100 most recent articles
+        let allArticles = feed.articles.sorted { ($0.publishedAt ?? Date.distantPast) > ($1.publishedAt ?? Date.distantPast) }
+        if allArticles.count > 50 {
+            let toDelete = Array(allArticles[50...])
+            for article in toDelete {
+                context.delete(article)
+            }
+        }
         try context.save()
+        context.autosaveEnabled = true
+        
         return parsed.items.count
     }
 
