@@ -1,0 +1,42 @@
+{
+  "fill" : {
+    "solid" : "srgb:0.00000,0.78039,0.74510,1.00000"
+  },
+  "groups" : [
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill" : {
+            "solid" : "extended-gray:1.00000,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "noun-rss-feed-253767.svg",
+          "name" : "noun-rss-feed-253767",
+          "position" : {
+            "scale" : 6.6,
+            "translation-in-points" : [
+              18,
+              4
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
