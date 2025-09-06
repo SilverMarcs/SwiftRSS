@@ -15,10 +15,8 @@ struct ArticleListView: View {
                 }
                 .navigationLinkIndicatorVisibility(.hidden)
             }
-            .listRowSeparator(.hidden, edges: .top)
-            .listRowSeparator(.visible, edges: .bottom)
         }
-        .listStyle(.plain)
+        .contentMargins(.top, 2)
         .toolbar {
             ToolbarItem {
                 Button {
@@ -29,6 +27,7 @@ struct ArticleListView: View {
             }
         }
         .navigationTitle(filter.displayName)
+        .navigationSubtitle("\(articles.count) articles")
         .toolbarTitleDisplayMode(.inline)
         .refreshable {
             await refreshCurrentScope()

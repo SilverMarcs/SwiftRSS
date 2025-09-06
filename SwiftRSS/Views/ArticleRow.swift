@@ -14,13 +14,13 @@ struct ArticleRow: View {
     @State private var showingSafari = false
     
     let article: Article
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading) {
             // Image at the top
             if let imageURL = article.featuredImageURL ?? article.thumbnailURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
-                    .frame(height: 180)
+                    .frame(height: 165)
                     .cornerRadius(8)
             }
             
@@ -29,7 +29,7 @@ struct ArticleRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(article.title)
                         .lineLimit(2)
-                        .foregroundColor(article.isRead ? .secondary : .primary)
+                        .foregroundStyle(article.isRead ? .secondary : .primary)
                         .font(.headline)
                     
                     HStack {

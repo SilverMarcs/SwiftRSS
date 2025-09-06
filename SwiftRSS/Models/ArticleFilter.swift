@@ -29,7 +29,7 @@ enum ArticleFilter: Hashable {
     var icon: String {
         switch self {
         case .all:
-            "tray.full"
+            "tray.fill"
         case .unread:
             "largecircle.fill.circle"
         case .starred:
