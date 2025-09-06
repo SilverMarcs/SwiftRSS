@@ -8,7 +8,9 @@ struct ArticleListView: View {
     let filter: ArticleFilter
     let searchText: String
     let showingUnreadOnly: Bool
-    @Binding var showingMarkAllReadAlert: Bool
+    
+    // Move the state here instead of receiving it as a binding
+    @State private var showingMarkAllReadAlert: Bool = false
 
     var body: some View {
         List {
@@ -22,27 +24,33 @@ struct ArticleListView: View {
         .contentMargins(.top, 4)
         .contentMargins(.horizontal, 5)
         .navigationSubtitle("\(articles.count) articles")
-        .confirmationDialog("Mark All as Read", isPresented: $showingMarkAllReadAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Mark All Read", role: .destructive) {
-                markAllAsRead()
-            }
-        } message: {
-            Text("Are you sure you want to mark all \(articles.count) articles as read?")
-        }
-        .onChange(of: showingMarkAllReadAlert) { _, newValue in
-            if newValue {
-                // Disable the button if all articles are read
-                showingMarkAllReadAlert = !articles.allSatisfy { $0.isRead }
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                Button {
+                    // Only show alert if there are unread articles
+                    if !articles.allSatisfy({ $0.isRead }) {
+                        showingMarkAllReadAlert = true
+                    }
+                } label: {
+                    Label("Mark all as read", systemImage: "largecircle.fill.circle")
+                }
+                .disabled(articles.allSatisfy({ $0.isRead }))
+                .confirmationDialog("Mark All as Read", isPresented: $showingMarkAllReadAlert) {
+                    Button("Cancel", role: .cancel) { }
+                    Button("Mark All Read", role: .destructive) {
+                        markAllAsRead()
+                    }
+                } message: {
+                    Text("Are you sure you want to mark all \(articles.count) articles as read?")
+                }
             }
         }
     }
     
-    init(filter: ArticleFilter, searchText: String, showingUnreadOnly: Bool, showingMarkAllReadAlert: Binding<Bool>) {
+    init(filter: ArticleFilter, searchText: String, showingUnreadOnly: Bool) {
         self.filter = filter
         self.searchText = searchText
         self.showingUnreadOnly = showingUnreadOnly
-        self._showingMarkAllReadAlert = showingMarkAllReadAlert
         
         // Build compound predicate based on filter type and additional conditions
         let basePredicate = Self.buildBasePredicate(for: filter)
@@ -55,7 +63,7 @@ struct ArticleListView: View {
         _articles = Query(
             filter: finalPredicate,
             sort: [SortDescriptor(\Article.publishedAt, order: .reverse)],
-            animation: .default
+            animation: .interactiveSpring
         )
     }
     

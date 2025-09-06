@@ -13,15 +13,13 @@ struct ArticleListContainerView: View {
     
     @State private var searchText: String = ""
     @State private var showingUnreadOnly: Bool = false
-    @State private var showingMarkAllReadAlert: Bool = false
     @Environment(\.modelContext) private var context
 
     var body: some View {
         ArticleListView(
             filter: filter,
             searchText: searchText,
-            showingUnreadOnly: showingUnreadOnly,
-            showingMarkAllReadAlert: $showingMarkAllReadAlert
+            showingUnreadOnly: showingUnreadOnly
         )
         .navigationTitle(filter.displayName)
         .toolbarTitleDisplayMode(.inline)
@@ -42,14 +40,6 @@ struct ArticleListContainerView: View {
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
             
             ToolbarSpacer(.fixed, placement: .bottomBar)
-            
-            ToolbarItem(placement: .bottomBar) {
-                Button {
-                    showingMarkAllReadAlert = true
-                } label: {
-                    Label("Mark all as read", systemImage: "largecircle.fill.circle")
-                }
-            }
         }
     }
     
