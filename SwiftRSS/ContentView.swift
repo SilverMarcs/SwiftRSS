@@ -1,13 +1,19 @@
+//
+//  ContentView.swift
+//  SwiftRSS
+//
+//  Created by Zabir Raihan on 06/09/2025.
+//
+
 import SwiftUI
 import SwiftData
-import CachedAsyncImage
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Feed.title) private var feeds: [Feed]
 
     @State var showAddFeed: Bool = false
-    @State var showImporter: Bool = false
+    @State var showSettings: Bool = false
     @State private var path = NavigationPath()
     
     @Namespace private var transition
@@ -18,7 +24,12 @@ struct ContentView: View {
                 Section("Smart") {
                     ForEach(ArticleFilter.smartFilters, id: \.self) { filter in
                         NavigationLink(value: filter) {
-                            Label(filter.displayName, systemImage: filter.icon)
+                            Label {
+                                Text(filter.displayName)
+                            } icon: {
+                                Image(systemName: filter.icon)
+                                    .foregroundStyle(filter.color)
+                            }
                         }
                     }
                 }
@@ -26,16 +37,7 @@ struct ContentView: View {
                 Section("Feeds") {
                     ForEach(feeds) { feed in
                         NavigationLink(value: ArticleFilter.feed(feed)) {
-                            Label {
-                                Text(feed.title)
-                            } icon: {
-                                if let imageURL = feed.thumbnailURL {
-                                    CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
-                                } else {
-                                    Image(systemName: "dot.radiowaves.left.and.right")
-                                        .imageScale(.small)
-                                }
-                            }
+                            FeedRow(feed: feed)
                         }
                     }
                     .onDelete(perform: deleteFeeds)
@@ -44,25 +46,36 @@ struct ContentView: View {
             .navigationTitle("Feed")
             .navigationDestinations(path: $path)
             .toolbarTitleDisplayMode(.inlineLarge)
-            .sheet(isPresented: $showAddFeed) {
-                AddFeedSheet()
-                    .presentationDetents([.medium])
-                    .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
-            }
             .task {
                 await FeedService.refreshAll(context: context)
             }
             .toolbar {
+                ToolbarItem {
+                    Button {
+                        showSettings.toggle()
+                    } label: {
+                        Image(systemName: "gear")
+                    }
+                }
+                
                 ToolbarSpacer(.flexible, placement: .bottomBar)
                 
                 ToolbarItem(placement: .bottomBar) {
                     Button {
-                        showAddFeed = true
+                        showAddFeed.toggle()
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
                 .matchedTransitionSource(id: "add-feed", in: transition)
+            }
+            .sheet(isPresented: $showAddFeed) {
+                AddFeedSheet()
+                    .presentationDetents([.medium])
+                    .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
     }

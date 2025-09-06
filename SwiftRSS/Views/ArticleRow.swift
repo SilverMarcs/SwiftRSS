@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SafariServices
+import SwiftData
 import CachedAsyncImage
 
 struct ArticleRow: View {
@@ -19,8 +19,8 @@ struct ArticleRow: View {
         VStack(alignment: .leading, spacing: 8) {
             // Image at the top
             if let imageURL = article.featuredImageURL ?? article.thumbnailURL {
-                CachedAsyncImage(url: imageURL, targetSize: .init(width: 500, height: 350))
-                    .frame(height: 150)
+                CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
+                    .frame(height: 180)
                     .cornerRadius(8)
             }
             
@@ -33,6 +33,16 @@ struct ArticleRow: View {
                         .font(.headline)
                     
                     HStack {
+                        Group {
+                            if let imageURL = article.feed.thumbnailURL {
+                                CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                            } else {
+                                Image(systemName: "dot.radiowaves.left.and.right")
+                                    .imageScale(.small)
+                            }
+                        }
+                        .frame(width: 15, height: 15)
+                        
                         Text(article.feed.title)
                             .lineLimit(1)
                             .font(.caption)
@@ -68,6 +78,7 @@ struct ArticleRow: View {
         .swipeActions(edge: .leading) {
             Button {
                 article.isRead.toggle()
+                try? article.modelContext?.save()
             } label: {
                 Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "circle" : "checkmark")
             }
@@ -76,6 +87,7 @@ struct ArticleRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button {
                 article.isStarred.toggle()
+                try? article.modelContext?.save()
             } label: {
                 Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
             }

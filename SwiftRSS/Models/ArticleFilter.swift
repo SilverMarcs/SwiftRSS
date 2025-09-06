@@ -5,7 +5,7 @@
 //  Created by Zabir Raihan on 06/09/2025.
 //
 
-import Foundation
+import SwiftUI
 
 enum ArticleFilter: Hashable {
     case all
@@ -31,11 +31,24 @@ enum ArticleFilter: Hashable {
         case .all:
             "tray.full"
         case .unread:
-            "circle.fill"
+            "largecircle.fill.circle"
         case .starred:
             "star.fill"
         case .feed:
             "dot.radiowaves.left.and.right"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .all:
+            .blue
+        case .unread:
+            .green
+        case .starred:
+            .orange
+        case .feed:
+            .gray
         }
     }
     
