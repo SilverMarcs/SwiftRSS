@@ -36,17 +36,17 @@ struct ArticleListView: View {
                 }
             }
             
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            
+            ToolbarSpacer(.fixed, placement: .bottomBar)
+            
             ToolbarItem(placement: .bottomBar) {
                 Button {
                     
                 } label: {
-                    Label("Mark all as read", systemImage: "circle.badge.checkmark.fill")
+                    Label("Mark all as read", systemImage: "circle.badge.checkmark")
                 }
             }
-            
-            ToolbarSpacer(.fixed, placement: .bottomBar)
-            
-            DefaultToolbarItem(kind: .search, placement: .bottomBar)
         }
     }
     

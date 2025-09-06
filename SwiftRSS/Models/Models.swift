@@ -25,10 +25,8 @@ final class Feed {
 final class Article {
     @Relationship var feed: Feed
     
-    @Attribute(.unique) var id: String
-
+    @Attribute(.unique) var link: URL
     var title: String
-    var link: URL
     var author: String?
     var contentHTML: String?
     var featuredImageURL: URL?
@@ -43,6 +41,5 @@ final class Article {
         self.title = title
         self.link = link
         self.publishedAt = publishedAt
-        self.id = link.absoluteString
     }
 }

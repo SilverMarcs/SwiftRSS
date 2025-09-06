@@ -80,7 +80,7 @@ struct FeedService {
         try saveItems(parsed.items, into: feed, context: context)
         
         context.autosaveEnabled = false
-        // Keep only top 100 most recent articles
+        // Keep only top 50 most recent articles
         let allArticles = feed.articles.sorted { ($0.publishedAt ?? Date.distantPast) > ($1.publishedAt ?? Date.distantPast) }
         if allArticles.count > 50 {
             let toDelete = Array(allArticles[50...])
@@ -104,9 +104,9 @@ struct FeedService {
     private static func saveItems(_ items: [FeedItem], into feed: Feed, context: ModelContext) throws {
         for item in items {
             // Check if article already exists by ID (which is the URL string)
-            let articleId = item.link.absoluteString
+            let articleId = item.link
             let predicate = #Predicate<Article> { article in
-                article.id == articleId
+                article.link == articleId
             }
             let existingArticles = try context.fetch(FetchDescriptor<Article>(predicate: predicate))
             

@@ -14,6 +14,7 @@ struct ContentView: View {
 
     @State var showAddFeed: Bool = false
     @State var showSettings: Bool = false
+    @State var initialFetchDone: Bool = false
     @State private var path = NavigationPath()
     
     @Namespace private var transition
@@ -48,6 +49,12 @@ struct ContentView: View {
             .navigationDestinations(path: $path)
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
+                if !initialFetchDone {
+                    await FeedService.refreshAll(context: context)
+                    initialFetchDone = true
+                }
+            }
+            .refreshable {
                 await FeedService.refreshAll(context: context)
             }
             .toolbar {
