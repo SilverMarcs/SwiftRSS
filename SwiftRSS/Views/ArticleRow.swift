@@ -15,7 +15,7 @@ struct ArticleRow: View {
     let article: Article
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading) {
             // Image at the top
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
@@ -24,53 +24,47 @@ struct ArticleRow: View {
             }
             
             // Content below image
+            Text(article.title)
+                .lineLimit(2)
+                .foregroundStyle(article.isRead ? .secondary : .primary)
+                .font(.headline)
+            
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(article.title)
-                        .lineLimit(2)
-                        .foregroundStyle(article.isRead ? .secondary : .primary)
-                        .font(.headline)
-                    
-                    HStack {
-                        Group {
-                            if let imageURL = article.feed.thumbnailURL {
-                                CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
-                                    .clipShape(.rect(cornerRadius: 4))
-                            } else {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                                    .imageScale(.small)
-                            }
-                        }
-                        .frame(width: 15, height: 15)
-                        
-                        Text(article.feed.title)
-                            .lineLimit(1)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        Spacer()
-                        
-                        if let date = article.publishedAt {
-                            Text(date.publishedFormat)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                Group {
+                    if let imageURL = article.feed.thumbnailURL {
+                        CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                            .clipShape(.rect(cornerRadius: 4))
+                    } else {
+                        Image(systemName: "dot.radiowaves.left.and.right")
+                            .imageScale(.small)
                     }
+                }
+                .frame(width: 15, height: 15)
+                
+                Text(article.feed.title)
+                    .lineLimit(1)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                
+                if !article.isRead {
+                    Circle()
+                        .fill(.accent)
+                        .frame(width: 8, height: 8)
                 }
                 
                 Spacer()
                 
-                VStack {
-                    if !article.isRead {
-                        Circle()
-                            .fill(.accent)
-                            .frame(width: 8, height: 8)
-                    }
-                    if article.isStarred {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(.orange)
-                            .font(.caption)
-                    }
+                if article.isStarred {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                }
+                
+                if let date = article.publishedAt {
+                    Text(date.publishedFormat)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }

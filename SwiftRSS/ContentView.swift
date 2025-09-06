@@ -38,7 +38,7 @@ struct ContentView: View {
                     ForEach(feeds) { feed in
                         NavigationLink(value: ArticleFilter.feed(feed)) {
                             FeedRow(feed: feed)
-                                .badge(feed.articles.count) 
+                                .badge(feed.articles.count(where: { !$0.isRead })) 
                         }
                     }
                     .onDelete(perform: deleteFeeds)

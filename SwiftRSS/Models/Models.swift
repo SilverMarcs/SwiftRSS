@@ -4,6 +4,7 @@ import Foundation
 @Model
 final class Feed {
     @Attribute(.unique) var id: String
+    
     var title: String
     var url: URL
     var thumbnailURL: URL?
