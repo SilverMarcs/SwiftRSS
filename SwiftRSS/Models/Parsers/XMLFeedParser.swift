@@ -22,7 +22,7 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         self.data = data
         self.baseURL = baseURL
         
-///         Print raw data as string
+        // Print raw data as string
 //        if let rawString = String(data: data, encoding: .utf8) {
 //            print("=== RAW FEED DATA ===")
 //            print(rawString)
@@ -36,6 +36,12 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         let parser = XMLParser(data: data)
         parser.delegate = self
         parser.parse()
+        
+        // Add favicon fallback if no thumbnail found
+        if rssMeta.thumbnailURL == nil {
+            rssMeta.thumbnailURL = getFaviconURL()
+        }
+        
         return (rssMeta, rssItems)
     }
 
@@ -43,6 +49,12 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         let parser = XMLParser(data: data)
         parser.delegate = self
         parser.parse()
+        
+        // Add favicon fallback if no thumbnail found
+        if atomMeta.thumbnailURL == nil {
+            atomMeta.thumbnailURL = getFaviconURL()
+        }
+        
         return (atomMeta, atomItems)
     }
 
@@ -174,6 +186,29 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
             }
         }
         return nil
+    }
+    
+    // Helper function to generate favicon URL as fallback
+    private func getFaviconURL() -> URL? {
+        // Create base URL components (removes path, keeps domain)
+        var components = URLComponents()
+        components.scheme = baseURL.scheme
+        components.host = baseURL.host
+        components.port = baseURL.port
+        
+        guard let baseHost = components.url else { return nil }
+        
+        // Try common favicon paths in order of preference
+        let faviconPaths = [
+            "/favicon.ico",           // Most common
+            "/favicon.png",           // PNG alternative
+            "/apple-touch-icon.png",  // Apple touch icon
+            "/favicon-32x32.png",     // Specific size
+            "/favicon-16x16.png"      // Smaller size
+        ]
+        
+        // Return the first favicon path (most likely to exist)
+        return URL(string: faviconPaths[0], relativeTo: baseHost)?.absoluteURL
     }
 }
 
