@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 extension View {
     private func commonDestinationModifiers(path: Binding<NavigationPath>) -> some View {
@@ -23,11 +24,12 @@ extension View {
                     .commonDestinationModifiers(path: path)
             }
             .navigationDestination(for: Article.self) { article in
-                SafariView(url: article.link) {
+                ArticleReaderView(url: article.link) {
                     path.wrappedValue.removeLast()
                 }
                 .onAppear {
                     article.isRead = true
+                    try? article.modelContext?.save()
                 }
                 .ignoresSafeArea()
                 .navigationBarBackButtonHidden()

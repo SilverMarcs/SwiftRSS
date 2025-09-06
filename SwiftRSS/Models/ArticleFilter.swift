@@ -25,4 +25,19 @@ enum ArticleFilter: Hashable {
             feed.title
         }
     }
+    
+    var icon: String {
+        switch self {
+        case .all:
+            "tray.full"
+        case .unread:
+            "circle.fill"
+        case .starred:
+            "star.fill"
+        case .feed:
+            "dot.radiowaves.left.and.right"
+        }
+    }
+    
+    static let smartFilters: [ArticleFilter] = [.all, .unread, .starred]
 }

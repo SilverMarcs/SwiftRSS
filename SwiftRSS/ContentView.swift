@@ -16,14 +16,10 @@ struct ContentView: View {
         NavigationStack(path: $path) {
             List {
                 Section("Smart") {
-                    NavigationLink(value: ArticleFilter.all) {
-                        Label("All Articles", systemImage: "tray.full")
-                    }
-                    NavigationLink(value: ArticleFilter.unread) {
-                        Label("Unread", systemImage: "circle.fill")
-                    }
-                    NavigationLink(value: ArticleFilter.starred) {
-                        Label("Starred", systemImage: "star.fill")
+                    ForEach(ArticleFilter.smartFilters, id: \.self) { filter in
+                        NavigationLink(value: filter) {
+                            Label(filter.displayName, systemImage: filter.icon)
+                        }
                     }
                 }
 

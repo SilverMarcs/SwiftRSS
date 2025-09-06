@@ -1,5 +1,5 @@
 //
-//  SafariView.swift
+//  ArticleReaderView.swift
 //  SwiftRSS
 //
 //  Created by Zabir Raihan on 06/09/2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SafariServices
 
-struct SafariView: UIViewControllerRepresentable {
+struct ArticleReaderView: UIViewControllerRepresentable {
     let url: URL
     var onDismiss: (() -> Void)
 
@@ -19,6 +19,7 @@ struct SafariView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> SFSafariViewController {
         let config = SFSafariViewController.Configuration()
         config.entersReaderIfAvailable = true
+//        config.barCollapsingEnabled = false
 
         let safari = SFSafariViewController(url: url, configuration: config)
         safari.delegate = context.coordinator
@@ -28,9 +29,9 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 
     class Coordinator: NSObject, SFSafariViewControllerDelegate {
-        let parent: SafariView
+        let parent: ArticleReaderView
 
-        init(_ parent: SafariView) {
+        init(_ parent: ArticleReaderView) {
             self.parent = parent
         }
 
