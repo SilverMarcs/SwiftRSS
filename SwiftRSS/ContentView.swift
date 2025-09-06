@@ -35,36 +35,16 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Feed")
+            .navigationDestinations(path: $path)
             .toolbarTitleDisplayMode(.inlineLarge)
             .sheet(isPresented: $showAddFeed) {
                 AddFeedSheet()
                     .presentationDetents([.medium])
             }
-            .navigationDestinations(path: $path)
-            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.opml, .xml]) { result in
-                switch result {
-                case .success(let url):
-                    Task {
-                        do {
-                            let data = try Data(contentsOf: url)
-                            try await importOPML(data: data, context: context)
-                        } catch {
-                            print("OPML import failed: \(error)")
-                        }
-                    }
-                case .failure(let err):
-                    print(err)
-                }
+            .task {
+                await FeedService.refreshAll(context: context)
             }
             .toolbar {
-                ToolbarItem(placement: .bottomBar) {
-                    Button {
-                        showImporter = true
-                    } label: {
-                        Image(systemName: "square.and.arrow.down")
-                    }
-                }
-                
                 ToolbarSpacer(.flexible, placement: .bottomBar)
                 
                 ToolbarItem(placement: .bottomBar) {
