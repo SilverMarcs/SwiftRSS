@@ -24,14 +24,10 @@ extension View {
                     .commonDestinationModifiers(path: path)
             }
             .navigationDestination(for: Article.self) { article in
-                ArticleReaderView(url: article.link) {
-                    path.wrappedValue.removeLast()
-                }
-                .onAppear {
-                    article.isRead = true
-                }
-                .ignoresSafeArea()
-                .navigationBarBackButtonHidden()
+                ArticleReaderView(article: article)
+                    .commonDestinationModifiers(path: path)
+                    .ignoresSafeArea()
+                    .navigationBarBackButtonHidden()
             }
     }
 }
