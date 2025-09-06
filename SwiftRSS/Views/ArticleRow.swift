@@ -19,7 +19,7 @@ struct ArticleRow: View {
             // Image at the top
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
-                    .frame(height: 165)
+                    .frame(height: 170)
                     .cornerRadius(8)
             }
             
@@ -61,11 +61,9 @@ struct ArticleRow: View {
                         .font(.caption)
                 }
                 
-                if let date = article.publishedAt {
-                    Text(date.publishedFormat)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(article.publishedAt.publishedFormat)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .contentShape(.contextMenuPreview, .rect)

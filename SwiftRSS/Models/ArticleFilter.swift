@@ -12,6 +12,7 @@ enum ArticleFilter: Hashable {
     case unread
     case starred
     case feed(Feed)
+    case today
     
     var displayName: String {
         switch self {
@@ -23,6 +24,8 @@ enum ArticleFilter: Hashable {
             "Starred"
         case .feed(let feed):
             feed.title
+        case .today:
+            "Today"
         }
     }
     
@@ -36,6 +39,8 @@ enum ArticleFilter: Hashable {
             "star.fill"
         case .feed:
             "dot.radiowaves.left.and.right"
+        case .today:
+            "sun.max.fill"
         }
     }
     
@@ -49,8 +54,10 @@ enum ArticleFilter: Hashable {
             .orange
         case .feed:
             .gray
+        case .today:
+            .yellow
         }
     }
     
-    static let smartFilters: [ArticleFilter] = [.all, .unread, .starred]
+    static let smartFilters: [ArticleFilter] = [.today, .all, .unread, .starred]
 }

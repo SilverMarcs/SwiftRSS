@@ -31,12 +31,12 @@ final class Article {
     var contentHTML: String?
     var featuredImageURL: URL?
 
-    var publishedAt: Date?
+    var publishedAt: Date
 
     var isRead: Bool = false
     var isStarred: Bool = false
 
-    init(feed: Feed, title: String, link: URL, publishedAt: Date?) {
+    init(feed: Feed, title: String, link: URL, publishedAt: Date = Date.now) {
         self.feed = feed
         self.title = title
         self.link = link

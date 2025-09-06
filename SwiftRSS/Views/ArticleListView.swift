@@ -74,6 +74,15 @@ struct ArticleListView: View {
                 article.feed.persistentModelID == feedID
             }
             _articles = Query(filter: predicate, sort: \Article.publishedAt, order: .reverse)
+        case .today:
+            let today = Date()
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: today)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+            let predicate = #Predicate<Article> { article in
+                article.publishedAt >= startOfDay && article.publishedAt < endOfDay
+            }
+            _articles = Query(filter: predicate, sort: \Article.publishedAt, order: .reverse)
         }
     }
 
