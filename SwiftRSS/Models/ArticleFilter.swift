@@ -42,7 +42,7 @@ enum ArticleFilter: Hashable {
     var color: Color {
         switch self {
         case .all:
-            .blue
+            .accent
         case .unread:
             .green
         case .starred:

@@ -65,10 +65,10 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         }
 
         if stack.suffix(1) == ["item"] && currentItem == nil {
-            currentItem = FeedItem(title: "", link: baseURL, summary: nil, contentHTML: nil, author: nil, publishedAt: nil, updatedAt: nil, thumbnailURL: nil, featuredImageURL: nil)
+            currentItem = FeedItem(title: "", link: baseURL, contentHTML: nil, author: nil, publishedAt: nil, featuredImageURL: nil)
         }
         if stack.suffix(1) == ["entry"] && atomCurrent == nil {
-            atomCurrent = FeedItem(title: "", link: baseURL, summary: nil, contentHTML: nil, author: nil, publishedAt: nil, updatedAt: nil, thumbnailURL: nil, featuredImageURL: nil)
+            atomCurrent = FeedItem(title: "", link: baseURL, contentHTML: nil, author: nil, publishedAt: nil, featuredImageURL: nil)
         }
     }
 
@@ -91,7 +91,6 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         if path.suffix(2) == ["item","title"] { currentItem?.title = text }
         if path.suffix(2) == ["item","link"], let u = URL(string: text, relativeTo: baseURL) { currentItem?.link = u.absoluteURL }
         if path.suffix(2) == ["item","description"] {
-            currentItem?.summary = text
             // Try to extract featured image from description HTML
             if currentItem?.featuredImageURL == nil {
                 currentItem?.featuredImageURL = extractImageFromHTML(text)
@@ -132,7 +131,6 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         // Atom entry
         if path.suffix(2) == ["entry","title"] { atomCurrent?.title = text }
         if path.suffix(2) == ["entry","summary"] {
-            atomCurrent?.summary = text
             if atomCurrent?.featuredImageURL == nil {
                 atomCurrent?.featuredImageURL = extractImageFromHTML(text)
             }
@@ -145,7 +143,6 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         }
         if path.suffix(2) == ["entry","author"] { atomCurrent?.author = text }
         if path.suffix(2) == ["entry","published"] { atomCurrent?.publishedAt = ISO8601DateFormatter().date(from: text) }
-        if path.suffix(2) == ["entry","updated"] { atomCurrent?.updatedAt = ISO8601DateFormatter().date(from: text) }
         if lower == "entry" {
             if let item = atomCurrent {
                 atomItems.append(item)

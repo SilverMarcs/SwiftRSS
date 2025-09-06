@@ -11,14 +11,13 @@ import CachedAsyncImage
 
 struct ArticleRow: View {
     @Environment(\.modelContext) private var context
-    @State private var showingSafari = false
     
     let article: Article
 
     var body: some View {
         VStack(alignment: .leading) {
             // Image at the top
-            if let imageURL = article.featuredImageURL ?? article.thumbnailURL {
+            if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
                     .frame(height: 165)
                     .cornerRadius(8)
@@ -36,6 +35,7 @@ struct ArticleRow: View {
                         Group {
                             if let imageURL = article.feed.thumbnailURL {
                                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                                    .clipShape(.rect(cornerRadius: 3))
                             } else {
                                 Image(systemName: "dot.radiowaves.left.and.right")
                                     .imageScale(.small)
@@ -63,7 +63,7 @@ struct ArticleRow: View {
                 VStack {
                     if !article.isRead {
                         Circle()
-                            .fill(.blue)
+                            .fill(.accent)
                             .frame(width: 8, height: 8)
                     }
                     if article.isStarred {
@@ -82,7 +82,7 @@ struct ArticleRow: View {
             } label: {
                 Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "circle" : "checkmark")
             }
-            .tint(.blue)
+            .tint(.accent)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button {

@@ -4,12 +4,9 @@ import SwiftData
 struct FeedItem {
     var title: String
     var link: URL
-    var summary: String?
     var contentHTML: String?
     var author: String?
     var publishedAt: Date?
-    var updatedAt: Date?
-    var thumbnailURL: URL?
     var featuredImageURL: URL?
 }
 
@@ -57,7 +54,6 @@ struct FeedService {
         }
     }
 
-    @MainActor
     static func subscribe(url: URL, context: ModelContext) async throws -> Feed {
         // Fetch and parse once to confirm it's a feed and get title
         let data = try await fetch(url: url)
@@ -78,7 +74,6 @@ struct FeedService {
         return feed
     }
 
-    @MainActor
     static func refresh(_ feed: Feed, context: ModelContext) async throws -> Int {
         let data = try await fetch(url: feed.url)
         let parsed = try parseFeed(data: data, url: feed.url)
@@ -87,7 +82,6 @@ struct FeedService {
         return parsed.items.count
     }
 
-    @MainActor
     static func refreshAll(context: ModelContext) async {
         let feeds = (try? context.fetch(FetchDescriptor<Feed>())) ?? []
         for feed in feeds {
@@ -95,18 +89,14 @@ struct FeedService {
         }
     }
 
-    @MainActor
     private static func saveItems(_ items: [FeedItem], into feed: Feed, context: ModelContext) throws {
         for item in items {
             let article = Article(feed: feed,
                                   title: item.title,
                                   link: item.link,
                                   publishedAt: item.publishedAt)
-            article.summary = item.summary
             article.contentHTML = item.contentHTML
             article.author = item.author
-            article.updatedAt = item.updatedAt
-            article.thumbnailURL = item.thumbnailURL
             article.featuredImageURL = item.featuredImageURL
             context.insert(article)
         }

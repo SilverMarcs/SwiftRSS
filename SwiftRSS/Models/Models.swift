@@ -30,12 +30,9 @@ final class Article {
     var link: URL
     var author: String?
     var contentHTML: String?
-    var summary: String?
-    var thumbnailURL: URL? // remove this
     var featuredImageURL: URL?
 
     var publishedAt: Date?
-    var updatedAt: Date? // remove this
 
     var isRead: Bool = false
     var isStarred: Bool = false

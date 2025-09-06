@@ -17,6 +17,7 @@ struct FeedRow: View {
         } icon: {
             if let imageURL = feed.thumbnailURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                    .clipShape(.rect(cornerRadius: 3))
             } else {
                 Image(systemName: "dot.radiowaves.left.and.right")
                     .imageScale(.small)

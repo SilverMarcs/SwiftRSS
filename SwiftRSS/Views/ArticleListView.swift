@@ -17,6 +17,8 @@ struct ArticleListView: View {
             }
         }
         .contentMargins(.top, 2)
+        .contentMargins(.horizontal, 5)
+//        .listStyle(.plain)
         .toolbar {
             ToolbarItem {
                 Button {

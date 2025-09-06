@@ -35,7 +35,7 @@ struct AddFeedSheet: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isAdding ? "Adding…" : "Add") {
+                    Button(isAdding ? "Adding…" : "Add", role: .confirm) {
                         Task { await addFeed() }
                     }
                     .disabled(isAdding || URL(string: urlString) == nil)
