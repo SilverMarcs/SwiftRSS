@@ -11,6 +11,9 @@ import Reeeed
 struct ArticleReaderView: View {
     var article: Article
     @State var extractedText: String? = nil
+    @State private var showAISheet = false
+    
+    @Namespace private var aiTransition
     
     var body: some View {
         ReeeederView(url: article.link) { text in
@@ -36,7 +39,25 @@ struct ArticleReaderView: View {
             ToolbarSpacer(.flexible, placement: .bottomBar)
             
             ToolbarItem(placement: .bottomBar) {
+                Button {
+                    showAISheet = true
+                } label: {
+                    Label("AI Summary", systemImage: "sparkles")
+                }
+                .disabled(extractedText == nil)
+            }
+            .matchedTransitionSource(id: "ai-button", in: aiTransition)
+            
+            ToolbarItem(placement: .bottomBar) {
                 ShareLink(item: article.link)
+            }
+        }
+        .sheet(isPresented: $showAISheet) {
+            if let text = extractedText {
+                AISummaryView(extractedText: text)
+                    .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
