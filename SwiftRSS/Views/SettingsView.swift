@@ -7,14 +7,33 @@
 
 import SwiftUI
 import CachedAsyncImage
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var context
     @State private var deleteAlertPresented = false
+    @State private var showFileImporter = false
+    @State private var importError: String?
     
     var body: some View {
         NavigationStack {
             Form {
+                Section("Import") {
+                    Button {
+                        showFileImporter = true
+                    } label: {
+                        HStack {
+                            Label {
+                                Text("Import OPML")
+                            } icon: {
+                                Image(systemName: "square.and.arrow.down")
+                            }
+                        }
+                        .contentShape(.rect)
+                    }
+                }
+
                 Section("Images") {
                     Button {
                         deleteAlertPresented = true
@@ -33,9 +52,6 @@ struct SettingsView: View {
                         }
                         .contentShape(.rect)
                     }
-                    #if os(macOS)
-                    .buttonStyle(.plain)
-                    #endif
                     .alert("Clear Image Cache", isPresented: $deleteAlertPresented) {
                         Button("Clear", role: .destructive) {
                             Task {
@@ -63,7 +79,40 @@ struct SettingsView: View {
                     }
                 }
             }
+            #else
+            .buttonStyle(.plain)
             #endif
+            .fileImporter(
+                isPresented: $showFileImporter,
+                allowedContentTypes: [UTType.xml],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first {
+                        Task {
+                            do {
+                                if url.startAccessingSecurityScopedResource() {
+                                    defer { url.stopAccessingSecurityScopedResource() }
+                                    let data = try Data(contentsOf: url)
+                                    _ = try await FeedService.importOPML(data: data, context: context)
+                                } else {
+                                    importError = "Unable to access the selected file"
+                                }
+                            } catch {
+                                importError = error.localizedDescription
+                            }
+                        }
+                    }
+                case .failure(let error):
+                    importError = error.localizedDescription
+                }
+            }
+            .alert("Import Error", isPresented: .init(get: { importError != nil }, set: { if !$0 { importError = nil } })) {
+                Button("OK") { }
+            } message: {
+                Text(importError ?? "")
+            }
         }
     }
 }

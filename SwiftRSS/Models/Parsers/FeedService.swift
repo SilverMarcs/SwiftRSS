@@ -81,7 +81,7 @@ struct FeedService {
         
         context.autosaveEnabled = false
         // Keep only top 50 most recent articles
-        let allArticles = feed.articles.sorted { ($0.publishedAt ?? Date.distantPast) > ($1.publishedAt ?? Date.distantPast) }
+        let allArticles = feed.articles.sorted { ($0.publishedAt) > ($1.publishedAt) }
         if allArticles.count > 50 {
             let toDelete = Array(allArticles[50...])
             for article in toDelete {
@@ -100,7 +100,7 @@ struct FeedService {
             _ = try? await refresh(feed, context: context)
         }
     }
-
+    
     private static func saveItems(_ items: [FeedItem], into feed: Feed, context: ModelContext) throws {
         for item in items {
             // Check if article already exists by ID (which is the URL string)
@@ -119,20 +119,63 @@ struct FeedService {
                 article.author = item.author
                 article.featuredImageURL = item.featuredImageURL
                 // Don't update publishedAt if it already exists to avoid date inconsistencies
-                if article.publishedAt == nil {
-                    article.publishedAt = item.publishedAt
-                }
             } else {
                 // Create new article
                 article = Article(feed: feed,
                                   title: item.title,
                                   link: item.link,
-                                  publishedAt: item.publishedAt)
+                                  publishedAt: item.publishedAt ?? Date.now)
                 article.contentHTML = item.contentHTML
                 article.author = item.author
                 article.featuredImageURL = item.featuredImageURL
                 context.insert(article)
             }
         }
+    }
+
+    static func importOPML(data: Data, context: ModelContext) async throws -> [Feed] {
+        let feeds = try parseOPML(data: data)
+        var importedFeeds: [Feed] = []
+        for (_, url) in feeds {
+            let feed = try await subscribe(url: url, context: context)
+            importedFeeds.append(feed)
+        }
+        return importedFeeds
+    }
+
+    private static func parseOPML(data: Data) throws -> [(title: String, url: URL)] {
+        class OPMLParser: NSObject, XMLParserDelegate {
+            var feeds: [(String, URL)] = []
+            var currentTitle: String?
+            var currentUrl: String?
+
+            func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+                if elementName == "outline", let type = attributeDict["type"], type == "rss" {
+                    currentTitle = attributeDict["title"] ?? attributeDict["text"]
+                    currentUrl = attributeDict["xmlUrl"]
+                }
+            }
+
+            func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+                if elementName == "outline", let title = currentTitle, let urlString = currentUrl, let url = URL(string: urlString) {
+                    // Convert HTTP to HTTPS
+                    var secureUrl = url
+                    if url.scheme?.lowercased() == "http" {
+                        if let httpsUrl = URL(string: urlString.replacingOccurrences(of: "http://", with: "https://")) {
+                            secureUrl = httpsUrl
+                        }
+                    }
+                    feeds.append((title, secureUrl))
+                    currentTitle = nil
+                    currentUrl = nil
+                }
+            }
+        }
+
+        let parser = XMLParser(data: data)
+        let opmlParser = OPMLParser()
+        parser.delegate = opmlParser
+        parser.parse()
+        return opmlParser.feeds
     }
 }
