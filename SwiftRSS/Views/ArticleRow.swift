@@ -21,7 +21,7 @@ struct ArticleRow: View {
             if let imageURL = article.featuredImageURL ?? article.thumbnailURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 500, height: 350))
                     .frame(height: 150)
-                    .clipShape(.rect(cornerRadius: 8))
+                    .cornerRadius(8)
             }
             
             // Content below image
@@ -64,10 +64,7 @@ struct ArticleRow: View {
                 }
             }
         }
-        .contentShape(.rect)
-        .onTapGesture {
-            markAsReadAndOpenSafari()
-        }
+        .contentShape(.contextMenuPreview, .rect)
         .swipeActions(edge: .leading) {
             Button {
                 article.isRead.toggle()
@@ -83,55 +80,6 @@ struct ArticleRow: View {
                 Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
             }
             .tint(.orange)
-        }
-        .fullScreenCover(isPresented: $showingSafari) {
-            SafariView(url: article.link) {
-                showingSafari = false
-            }
-        }
-    }
-    
-    private func markAsReadAndOpenSafari() {
-        // Mark as read before opening
-        if !article.isRead {
-            article.isRead = true
-        }
-        showingSafari = true
-    }
-}
-
-// Safari View Controller wrapper with reader mode
-struct SafariView: UIViewControllerRepresentable {
-    let url: URL
-    let onDismiss: () -> Void
-    
-    func makeUIViewController(context: Context) -> SFSafariViewController {
-        let config = SFSafariViewController.Configuration()
-        config.entersReaderIfAvailable = true // Force reader mode when available
-//        config.activityButton
-//        config.barCollapsingEnabled
-        
-        let safari = SFSafariViewController(url: url, configuration: config)
-        safari.delegate = context.coordinator
-        
-        return safari
-    }
-    
-    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onDismiss: onDismiss)
-    }
-    
-    class Coordinator: NSObject, SFSafariViewControllerDelegate {
-        let onDismiss: () -> Void
-        
-        init(onDismiss: @escaping () -> Void) {
-            self.onDismiss = onDismiss
-        }
-        
-        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
-            onDismiss()
         }
     }
 }

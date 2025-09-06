@@ -1,7 +1,6 @@
 import SwiftUI
 import SwiftData
-import UniformTypeIdentifiers
-import SafariServices
+import CachedAsyncImage
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
@@ -10,6 +9,8 @@ struct ContentView: View {
     @State var showAddFeed: Bool = false
     @State var showImporter: Bool = false
     @State private var path = NavigationPath()
+    
+    @Namespace private var transition
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -32,7 +33,12 @@ struct ContentView: View {
                             Label {
                                 Text(feed.title)
                             } icon: {
-                                AsyncImage(url: feed.thumbnailURL)
+                                if let imageURL = feed.thumbnailURL {
+                                    CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                                } else {
+                                    Image(systemName: "dot.radiowaves.left.and.right")
+                                        .imageScale(.small)
+                                }
                             }
                         }
                     }
@@ -45,6 +51,7 @@ struct ContentView: View {
             .sheet(isPresented: $showAddFeed) {
                 AddFeedSheet()
                     .presentationDetents([.medium])
+                    .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
             }
             .task {
                 await FeedService.refreshAll(context: context)
@@ -59,6 +66,7 @@ struct ContentView: View {
                         Image(systemName: "plus")
                     }
                 }
+                .matchedTransitionSource(id: "add-feed", in: transition)
             }
         }
     }

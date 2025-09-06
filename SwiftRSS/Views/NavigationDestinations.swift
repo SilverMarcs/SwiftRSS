@@ -13,7 +13,6 @@ extension View {
             .environment(\.appendToPath, { value in
                 path.wrappedValue.append(value)
             })
-//            .handleURLs(path: path)
     }
     
     func navigationDestinations(path: Binding<NavigationPath>) -> some View {
@@ -24,8 +23,14 @@ extension View {
                     .commonDestinationModifiers(path: path)
             }
             .navigationDestination(for: Article.self) { article in
-                ArticleDetailView(article: article)
-                    .commonDestinationModifiers(path: path)
+                SafariView(url: article.link) {
+                    path.wrappedValue.removeLast()
+                }
+                .onAppear {
+                    article.isRead = true
+                }
+                .ignoresSafeArea()
+                .navigationBarBackButtonHidden()
             }
     }
 }

@@ -15,7 +15,7 @@ struct AddFeedSheet: View {
                 Section {
                     TextField("Enter feed url", text: $urlString)
                         .textInputAutocapitalization(.never)
-//                        .keyboardType(.URL)
+                        .keyboardType(.URL)
                 } header: {
                     Text("Feed URL")
                 } footer: {

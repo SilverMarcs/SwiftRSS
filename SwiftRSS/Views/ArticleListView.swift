@@ -15,6 +15,8 @@ struct ArticleListView: View {
                 }
                 .navigationLinkIndicatorVisibility(.hidden)
             }
+            .listRowSeparator(.hidden, edges: .top)
+            .listRowSeparator(.visible, edges: .bottom)
         }
         .listStyle(.plain)
         .toolbar {
