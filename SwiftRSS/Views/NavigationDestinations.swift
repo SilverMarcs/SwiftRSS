@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// TODO: might not need this and just use directly
+
 extension View {
     private func commonDestinationModifiers(path: Binding<NavigationPath>) -> some View {
         self
@@ -19,7 +21,7 @@ extension View {
         self
             .commonDestinationModifiers(path: path)
             .navigationDestination(for: ArticleFilter.self) { filter in
-                ArticleListView(filter: filter)
+                ArticleListContainerView(filter: filter)
                     .commonDestinationModifiers(path: path)
             }
             .navigationDestination(for: Article.self) { article in

@@ -10,31 +10,34 @@ import Reeeed
 
 struct ArticleReaderView: View {
     var article: Article
+    @State var extractedText: String? = nil
     
     var body: some View {
-        ReeeederView(url: article.link)
-            .onAppear {
-                article.isRead = true
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button {
-                        article.isRead.toggle()
-                    } label: {
-                        Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
-                    }
-                    Button {
-                        article.isStarred.toggle()
-                    } label: {
-                        Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
-                    }
+        ReeeederView(url: article.link) { text in
+            extractedText = text
+        }
+        .onAppear {
+            article.isRead = true
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .bottomBar) {
+                Button {
+                    article.isRead.toggle()
+                } label: {
+                    Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
                 }
-                
-                ToolbarSpacer(.flexible, placement: .bottomBar)
-                
-                ToolbarItem(placement: .bottomBar) {
-                    ShareLink(item: article.link)
+                Button {
+                    article.isStarred.toggle()
+                } label: {
+                    Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
                 }
             }
+            
+            ToolbarSpacer(.flexible, placement: .bottomBar)
+            
+            ToolbarItem(placement: .bottomBar) {
+                ShareLink(item: article.link)
+            }
+        }
     }
 }

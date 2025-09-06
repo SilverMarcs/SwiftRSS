@@ -1,0 +1,64 @@
+//
+//  ArticleListContainerView.swift
+//  SwiftRSS
+//
+//  Created by Zabir Raihan on 07/09/2025.
+//
+
+import SwiftUI
+import SwiftData
+
+struct ArticleListContainerView: View {
+    let filter: ArticleFilter
+    
+    @State private var searchText: String = ""
+    @State private var showingUnreadOnly: Bool = false
+    @State private var showingMarkAllReadAlert: Bool = false
+    @Environment(\.modelContext) private var context
+
+    var body: some View {
+        ArticleListView(
+            filter: filter,
+            searchText: searchText,
+            showingUnreadOnly: showingUnreadOnly,
+            showingMarkAllReadAlert: $showingMarkAllReadAlert
+        )
+        .navigationTitle(filter.displayName)
+        .toolbarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search Articles")
+        .refreshable {
+            await refreshCurrentScope()
+        }
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    showingUnreadOnly.toggle()
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease")
+                        .foregroundStyle(showingUnreadOnly ? .accent : .primary)
+                }
+            }
+            
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            
+            ToolbarSpacer(.fixed, placement: .bottomBar)
+            
+            ToolbarItem(placement: .bottomBar) {
+                Button {
+                    showingMarkAllReadAlert = true
+                } label: {
+                    Label("Mark all as read", systemImage: "largecircle.fill.circle")
+                }
+            }
+        }
+    }
+    
+    private func refreshCurrentScope() async {
+        switch filter {
+        case .feed(let feed):
+            let _ = try? await FeedService.refresh(feed, context: context)
+        default:
+            await FeedService.refreshAll(context: context)
+        }
+    }
+}

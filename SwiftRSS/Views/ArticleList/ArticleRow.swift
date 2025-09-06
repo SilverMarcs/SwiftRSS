@@ -27,7 +27,6 @@ struct ArticleRow: View {
             // Content below image
             Text(article.title)
                 .lineLimit(2)
-                .foregroundStyle(article.isRead ? .secondary : .primary)
                 .font(.headline)
             
             HStack {
@@ -36,7 +35,7 @@ struct ArticleRow: View {
                         CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
                             .clipShape(.rect(cornerRadius: 4))
                     } else {
-                        Image(systemName: "dot.radiowaves.left.and.right")
+                        Image(systemName: "apple.book.pages.fill")
                             .imageScale(.small)
                     }
                 }
@@ -47,12 +46,11 @@ struct ArticleRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
-                
-                if !article.isRead {
-                    Circle()
-                        .fill(.accent)
-                        .frame(width: 8, height: 8)
-                }
+//                if !article.isRead {
+//                    Image(systemName: "circle.fill")
+//                        .font(.caption2)
+//                        .foregroundStyle(.accent)
+//                }
                 
                 Spacer()
                 
@@ -67,6 +65,7 @@ struct ArticleRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .opacity(article.isRead ? 0.5 : 1)
         .contentShape(.contextMenuPreview, .rect)
         .swipeActions(edge: .leading) {
             Button {
