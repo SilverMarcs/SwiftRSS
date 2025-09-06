@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0835ADC32E6C90D7006C5F02 /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 0835ADC22E6C90D7006C5F02 /* Reeeed */; };
+		08C582D12E6C76D200D4033A /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 08C582D02E6C76D200D4033A /* Reeeed */; };
 		08F1A2142E6BD37B003B59C6 /* CachedAsyncImage in Frameworks */ = {isa = PBXBuildFile; productRef = 08F1A2132E6BD37B003B59C6 /* CachedAsyncImage */; };
 /* End PBXBuildFile section */
 
@@ -14,9 +16,22 @@
 		08AE155C2E6BC6E600BBBE1A /* SwiftRSS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftRSS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "SwiftRSS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Utils/BackupReaderViews.swift,
+			);
+			target = 08AE155B2E6BC6E600BBBE1A /* SwiftRSS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		08AE155E2E6BC6E600BBBE1A /* SwiftRSS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "SwiftRSS" target */,
+			);
 			path = SwiftRSS;
 			sourceTree = "<group>";
 		};
@@ -27,6 +42,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0835ADC32E6C90D7006C5F02 /* Reeeed in Frameworks */,
+				08C582D12E6C76D200D4033A /* Reeeed in Frameworks */,
 				08F1A2142E6BD37B003B59C6 /* CachedAsyncImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +88,8 @@
 			name = SwiftRSS;
 			packageProductDependencies = (
 				08F1A2132E6BD37B003B59C6 /* CachedAsyncImage */,
+				08C582D02E6C76D200D4033A /* Reeeed */,
+				0835ADC22E6C90D7006C5F02 /* Reeeed */,
 			);
 			productName = SwiftRSS;
 			productReference = 08AE155C2E6BC6E600BBBE1A /* SwiftRSS.app */;
@@ -102,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				08F1A2122E6BD37B003B59C6 /* XCRemoteSwiftPackageReference "CachedAsyncImage" */,
+				0835ADC12E6C90D7006C5F02 /* XCRemoteSwiftPackageReference "reeeed" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 08AE155D2E6BC6E600BBBE1A /* Products */;
@@ -382,6 +402,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		0835ADC12E6C90D7006C5F02 /* XCRemoteSwiftPackageReference "reeeed" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SilverMarcs/reeeed";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		08F1A2122E6BD37B003B59C6 /* XCRemoteSwiftPackageReference "CachedAsyncImage" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SilverMarcs/CachedAsyncImage";
@@ -393,6 +421,15 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0835ADC22E6C90D7006C5F02 /* Reeeed */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0835ADC12E6C90D7006C5F02 /* XCRemoteSwiftPackageReference "reeeed" */;
+			productName = Reeeed;
+		};
+		08C582D02E6C76D200D4033A /* Reeeed */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Reeeed;
+		};
 		08F1A2132E6BD37B003B59C6 /* CachedAsyncImage */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 08F1A2122E6BD37B003B59C6 /* XCRemoteSwiftPackageReference "CachedAsyncImage" */;

@@ -1,5 +1,5 @@
 {
-  "originHash" : "afc4776a7bb3e4731297dfc1a03675b44c131340665bc66b1bba02d038c2ebf5",
+  "originHash" : "05974727f1316248d82c5c0d7556e11a925dad76331f39a3ed964e4c66a605e0",
   "pins" : [
     {
       "identity" : "cachedasyncimage",
@@ -8,6 +8,24 @@
       "state" : {
         "branch" : "main",
         "revision" : "bad0ce02b038249cdd9396ad8f09a3c4fb9bf028"
+      }
+    },
+    {
+      "identity" : "fuzi",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/cezheng/Fuzi",
+      "state" : {
+        "revision" : "f08c8323da21e985f3772610753bcfc652c2103f",
+        "version" : "3.1.3"
+      }
+    },
+    {
+      "identity" : "reeeed",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SilverMarcs/reeeed",
+      "state" : {
+        "branch" : "main",
+        "revision" : "76fba0b6c7563d89e186a00e533d4f61765bcdef"
       }
     }
   ],

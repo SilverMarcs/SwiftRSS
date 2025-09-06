@@ -18,7 +18,7 @@ struct ArticleListView: View {
                 .navigationLinkIndicatorVisibility(.hidden)
             }
         }
-        .contentMargins(.top, 2)
+        .contentMargins(.top, 4)
         .contentMargins(.horizontal, 5)
         .navigationTitle(filter.displayName)
         .navigationSubtitle("\(articles.count) articles")
@@ -44,7 +44,7 @@ struct ArticleListView: View {
                 Button {
                     
                 } label: {
-                    Label("Mark all as read", systemImage: "circle.badge.checkmark")
+                    Label("Mark all as read", systemImage: "largecircle.fill.circle")
                 }
             }
         }

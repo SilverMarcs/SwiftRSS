@@ -19,6 +19,7 @@ struct ArticleRow: View {
             // Image at the top
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
+                    .aspectRatio(contentMode: .fill)
                     .frame(height: 170)
                     .cornerRadius(8)
             }
@@ -70,14 +71,16 @@ struct ArticleRow: View {
         .swipeActions(edge: .leading) {
             Button {
                 article.isRead.toggle()
+                try? context.save()
             } label: {
-                Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "circle" : "checkmark")
+                Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
             }
             .tint(.blue)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button {
                 article.isStarred.toggle()
+                try? context.save()
             } label: {
                 Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
             }

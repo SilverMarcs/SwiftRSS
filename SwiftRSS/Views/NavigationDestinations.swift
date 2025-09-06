@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftData
 
 extension View {
     private func commonDestinationModifiers(path: Binding<NavigationPath>) -> some View {
@@ -24,12 +23,8 @@ extension View {
                     .commonDestinationModifiers(path: path)
             }
             .navigationDestination(for: Article.self) { article in
-                ArticleReaderView(article: article) {
-                    path.wrappedValue.removeLast()
-                }
+                ArticleReaderView(article: article)
                     .commonDestinationModifiers(path: path)
-                    .ignoresSafeArea()
-                    .navigationBarBackButtonHidden()
             }
     }
 }
