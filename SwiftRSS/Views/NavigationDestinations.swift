@@ -24,7 +24,9 @@ extension View {
                     .commonDestinationModifiers(path: path)
             }
             .navigationDestination(for: Article.self) { article in
-                ArticleReaderView(article: article)
+                ArticleReaderView(article: article) {
+                    path.wrappedValue.removeLast()
+                }
                     .commonDestinationModifiers(path: path)
                     .ignoresSafeArea()
                     .navigationBarBackButtonHidden()

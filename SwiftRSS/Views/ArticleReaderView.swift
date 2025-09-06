@@ -10,17 +10,37 @@ import SafariServices
 
 struct ArticleReaderView: UIViewControllerRepresentable {
     let article: Article
+    let onDismiss: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
 
     func makeUIViewController(context: Context) -> SFSafariViewController {
+        article.isRead = true
+        
         let config = SFSafariViewController.Configuration()
         config.entersReaderIfAvailable = true
-        article.isRead = true
+        config.barCollapsingEnabled = false
 
         let safari = SFSafariViewController(url: article.link, configuration: config)
+        safari.delegate = context.coordinator
         return safari
     }
 
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+
+    class Coordinator: NSObject, SFSafariViewControllerDelegate {
+        let parent: ArticleReaderView
+
+        init(_ parent: ArticleReaderView) {
+            self.parent = parent
+        }
+
+        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+            parent.onDismiss()
+        }
+    }
 }
 
 
