@@ -13,8 +13,10 @@ struct ArticleListView: View {
                 NavigationLink(value: article) {
                     ArticleRow(article: article)
                 }
+                .navigationLinkIndicatorVisibility(.hidden)
             }
         }
+        .listStyle(.plain)
         .toolbar {
             ToolbarItem {
                 Button {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SafariServices
+import CachedAsyncImage
 
 struct ArticleRow: View {
     @Environment(\.modelContext) private var context
@@ -15,56 +16,51 @@ struct ArticleRow: View {
     let article: Article
     
     var body: some View {
-        HStack {
-            Label {
-                Text(article.title)
-                    .lineLimit(2)
-                    .foregroundColor(article.isRead ? .secondary : .primary)
-                
-                HStack {
-                    Text(article.feed.title)
-                        .lineLimit(1)
-                    
-                    Spacer()
-                    
-                    if let date = article.publishedAt {
-                        Text(date.publishedFormat)
-                    }
-                }
-                .font(.caption)
-                .foregroundColor(.secondary)
-            } icon: {
-                Group {
-                    if let thumb = article.thumbnailURL {
-                        AsyncImage(url: thumb) { img in
-                            img
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            Color.gray.opacity(0.2)
-                        }
-                    } else {
-                        Image(systemName: "doc.text")
-                            .imageScale(.large)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-//                .frame(width: 60, height: 60)
-                .clipShape(.rect(cornerRadius: 8))
+        VStack(alignment: .leading, spacing: 8) {
+            // Image at the top
+            if let imageURL = article.featuredImageURL ?? article.thumbnailURL {
+                CachedAsyncImage(url: imageURL, targetSize: .init(width: 500, height: 350))
+                    .frame(height: 150)
+                    .clipShape(.rect(cornerRadius: 8))
             }
             
-            Spacer()
-            
-            VStack {
-                if !article.isRead {
-                    Circle()
-                        .fill(.blue)
-                        .frame(width: 8, height: 8)
+            // Content below image
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(article.title)
+                        .lineLimit(2)
+                        .foregroundColor(article.isRead ? .secondary : .primary)
+                        .font(.headline)
+                    
+                    HStack {
+                        Text(article.feed.title)
+                            .lineLimit(1)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                        
+                        if let date = article.publishedAt {
+                            Text(date.publishedFormat)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
-                if article.isStarred {
-                    Image(systemName: "star.fill")
-                        .foregroundStyle(.orange)
-                        .font(.caption)
+                
+                Spacer()
+                
+                VStack {
+                    if !article.isRead {
+                        Circle()
+                            .fill(.blue)
+                            .frame(width: 8, height: 8)
+                    }
+                    if article.isStarred {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.orange)
+                            .font(.caption)
+                    }
                 }
             }
         }

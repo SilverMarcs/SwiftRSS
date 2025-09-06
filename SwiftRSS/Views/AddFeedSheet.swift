@@ -13,7 +13,7 @@ struct AddFeedSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("https://example.com/feed.xml", text: $urlString)
+                    TextField("Enter feed url", text: $urlString)
                         .textInputAutocapitalization(.never)
 //                        .keyboardType(.URL)
                 } header: {

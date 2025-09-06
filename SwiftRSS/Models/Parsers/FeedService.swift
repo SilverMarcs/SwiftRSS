@@ -10,10 +10,12 @@ struct FeedItem {
     var publishedAt: Date?
     var updatedAt: Date?
     var thumbnailURL: URL?
+    var featuredImageURL: URL?
 }
 
 struct FeedMeta {
     var title: String?
+    var thumbnailURL: URL?
 }
 
 enum FeedFormat { case rss2, atom }
@@ -67,7 +69,7 @@ struct FeedService {
             return existing
         }
 
-        let feed = Feed(title: title, url: url)
+        let feed = Feed(title: title, url: url, thumbnailURL: parsed.meta.thumbnailURL)
         context.insert(feed)
 
         // Save initial items
@@ -105,6 +107,7 @@ struct FeedService {
             article.author = item.author
             article.updatedAt = item.updatedAt
             article.thumbnailURL = item.thumbnailURL
+            article.featuredImageURL = item.featuredImageURL
             context.insert(article)
         }
     }

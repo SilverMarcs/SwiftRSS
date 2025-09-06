@@ -6,14 +6,16 @@ final class Feed {
     @Attribute(.unique) var id: String
     var title: String
     var url: URL
+    var thumbnailURL: URL?
     var addedAt: Date = Date.now
 
     @Relationship(deleteRule: .cascade, inverse: \Article.feed)
     var articles: [Article] = []
 
-    init(title: String, url: URL) {
+    init(title: String, url: URL, thumbnailURL: URL? = nil) {
         self.title = title
         self.url = url
+        self.thumbnailURL = thumbnailURL
         self.id = url.absoluteString
     }
 }
@@ -30,6 +32,7 @@ final class Article {
     var contentHTML: String?
     var summary: String?
     var thumbnailURL: URL?
+    var featuredImageURL: URL?
 
     var publishedAt: Date?
     var updatedAt: Date?

@@ -29,9 +29,14 @@ struct ContentView: View {
                 Section("Feeds") {
                     ForEach(feeds) { feed in
                         NavigationLink(value: ArticleFilter.feed(feed)) {
-                            Label(feed.title, systemImage: "dot.radiowaves.left.and.right")
+                            Label {
+                                Text(feed.title)
+                            } icon: {
+                                AsyncImage(url: feed.thumbnailURL)
+                            }
                         }
                     }
+                    .onDelete(perform: deleteFeeds)
                 }
             }
             .navigationTitle("Feed")
@@ -55,6 +60,14 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+    }
+    
+    // MARK: - Delete Function
+    private func deleteFeeds(offsets: IndexSet) {
+        for index in offsets {
+            let feedToDelete = feeds[index]
+            context.delete(feedToDelete)
         }
     }
 }
