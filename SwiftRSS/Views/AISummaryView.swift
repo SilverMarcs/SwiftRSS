@@ -25,7 +25,7 @@ struct AISummaryView: View {
                 ScrollView {
                     Text(LocalizedStringKey(summary))
                         .lineSpacing(3)
-                        .padding()
+                        .padding(20)
                 }
             }
         }
