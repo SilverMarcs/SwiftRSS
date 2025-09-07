@@ -9,11 +9,13 @@ import SwiftUI
 import SwiftData
 
 struct ArticleListContainerView: View {
+    @Environment(\.modelContext) private var context
+    
     let filter: ArticleFilter
     
     @State private var searchText: String = ""
     @State private var showingUnreadOnly: Bool = false
-    @Environment(\.modelContext) private var context
+    @State var initialFetchDone: Bool = false
 
     var body: some View {
         ArticleListView(
@@ -24,16 +26,24 @@ struct ArticleListContainerView: View {
         .navigationTitle(filter.displayName)
         .toolbarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search Articles")
+        .task {
+            if !initialFetchDone {
+                await FeedService.refreshAll(context: context)
+                initialFetchDone = true
+            }
+        }
         .refreshable {
             await refreshCurrentScope()
         }
         .toolbar {
-            ToolbarItem {
-                Button {
-                    showingUnreadOnly.toggle()
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease")
-                        .foregroundStyle(showingUnreadOnly ? .accent : .primary)
+            if filter != .unread {
+                ToolbarItem {
+                    Button {
+                        showingUnreadOnly.toggle()
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease")
+                            .foregroundStyle(showingUnreadOnly ? .accent : .primary)
+                    }
                 }
             }
             
@@ -47,6 +57,8 @@ struct ArticleListContainerView: View {
         switch filter {
         case .feed(let feed):
             let _ = try? await FeedService.refresh(feed, context: context)
+        case .starred:
+            print("Doesnt make sense to refresh")
         default:
             await FeedService.refreshAll(context: context)
         }
