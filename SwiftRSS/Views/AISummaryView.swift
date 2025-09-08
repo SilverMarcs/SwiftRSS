@@ -15,7 +15,7 @@ struct AISummaryView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        Group {
+        NavigationStack {
             if isLoading {
                 ProgressView("Generating summary...")
             } else if let error = errorMessage {
@@ -25,8 +25,11 @@ struct AISummaryView: View {
                 ScrollView {
                     Text(LocalizedStringKey(summary))
                         .lineSpacing(3)
-                        .padding(20)
+                        .scenePadding(.horizontal)
+                        .scenePadding(.bottom)
                 }
+                .navigationTitle("AI Summary")
+                .toolbarTitleDisplayMode(.inline)
             }
         }
         .task {

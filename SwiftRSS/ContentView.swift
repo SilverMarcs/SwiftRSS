@@ -10,6 +10,8 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
+//    @Environment(\.scenePhase) private var scenePhase
+    
     @Query(sort: \Feed.title) private var feeds: [Feed]
 
     @State var showAddFeed: Bool = false
@@ -54,6 +56,13 @@ struct ContentView: View {
                     initialFetchDone = true
                 }
             }
+//            .onChange(of: scenePhase) {
+//                if scenePhase == .active {
+//                    Task {
+//                        await FeedService.refreshAll(context: context)
+//                    }
+//                }
+//            }
             .refreshable {
                 await FeedService.refreshAll(context: context)
             }

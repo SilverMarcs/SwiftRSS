@@ -15,7 +15,6 @@ struct ArticleListContainerView: View {
     
     @State private var searchText: String = ""
     @State private var showingUnreadOnly: Bool = false
-    @State var initialFetchDone: Bool = false
 
     var body: some View {
         ArticleListView(
@@ -26,12 +25,6 @@ struct ArticleListContainerView: View {
         .navigationTitle(filter.displayName)
         .toolbarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search Articles")
-        .task {
-            if !initialFetchDone {
-                await FeedService.refreshAll(context: context)
-                initialFetchDone = true
-            }
-        }
         .refreshable {
             await refreshCurrentScope()
         }

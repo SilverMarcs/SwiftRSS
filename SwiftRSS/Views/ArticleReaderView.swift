@@ -57,7 +57,6 @@ struct ArticleReaderView: View {
                 AISummaryView(extractedText: text)
                     .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
                     .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
             }
         }
     }
