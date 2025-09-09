@@ -46,12 +46,6 @@ struct ArticleRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
-//                if !article.isRead {
-//                    Image(systemName: "circle.fill")
-//                        .font(.caption2)
-//                        .foregroundStyle(.accent)
-//                }
-                
                 Spacer()
                 
                 if article.isStarred {
@@ -66,24 +60,40 @@ struct ArticleRow: View {
             }
         }
         .opacity(article.isRead ? 0.5 : 1)
-        .contentShape(.contextMenuPreview, .rect)
+        .contextMenu {
+            readButton
+            
+            starButton
+            
+            Divider()
+            
+            ShareLink(item: article.link)
+        }
         .swipeActions(edge: .leading) {
-            Button {
-                article.isRead.toggle()
-                try? context.save()
-            } label: {
-                Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
-            }
-            .tint(.blue)
+            readButton
+                .tint(.blue)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button {
-                article.isStarred.toggle()
-                try? context.save()
-            } label: {
-                Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
-            }
-            .tint(.orange)
+            starButton
+                .tint(.orange)
+        }
+    }
+    
+    var readButton: some View {
+        Button {
+            article.isRead.toggle()
+            try? context.save()
+        } label: {
+            Label(article.isRead ? "Mark as Unread" : "Mark as Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
+        }
+    }
+    
+    var starButton: some View {
+        Button {
+            article.isStarred.toggle()
+            try? context.save()
+        } label: {
+            Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
         }
     }
 }
