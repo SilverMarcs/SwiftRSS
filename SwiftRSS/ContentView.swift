@@ -52,7 +52,7 @@ struct ContentView: View {
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
                 if !initialFetchDone {
-                    await FeedService.refreshAll(context: context)
+                    let _ = try? await FeedService.refreshAll(modelContainer: context.container)
                     initialFetchDone = true
                 }
             }
@@ -64,7 +64,7 @@ struct ContentView: View {
 //                }
 //            }
             .refreshable {
-                await FeedService.refreshAll(context: context)
+                let _ = try? await FeedService.refreshAll(modelContainer: context.container)
             }
             .toolbar {
                 ToolbarItem {

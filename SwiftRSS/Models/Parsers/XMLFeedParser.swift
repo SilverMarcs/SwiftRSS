@@ -22,14 +22,12 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         self.data = data
         self.baseURL = baseURL
         
-        // Print raw data as string
-//        if let rawString = String(data: data, encoding: .utf8) {
-//            print("=== RAW FEED DATA ===")
-//            print(rawString)
-//            print("=== END RAW DATA ===\n")
-//        } else {
-//            print("Could not convert data to UTF-8 string")
-//        }
+        // Debug: Print raw data as string if needed
+        // if let rawString = String(data: data, encoding: .utf8) {
+        //     print("=== RAW FEED DATA ===")
+        //     print(rawString)
+        //     print("=== END RAW DATA ===\n")
+        // }
     }
 
     func parseRSS2() throws -> (FeedMeta, [FeedItem]) {
@@ -118,7 +116,7 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         if path.suffix(2) == ["item","author"] { currentItem?.author = text }
         if path.suffix(2) == ["item","dc:creator"] { currentItem?.author = text }
         if path.suffix(2) == ["item","pubdate"] || path.suffix(2) == ["item","published"] {
-            currentItem?.publishedAt = ISO8601DateFormatter().date(from: text) ?? DateFormatter.rfc822.date(from: text)
+            currentItem?.publishedAt = RFCDate.parse(text)
         }
         
         // Media RSS namespace for featured images
@@ -154,7 +152,7 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
             }
         }
         if path.suffix(2) == ["entry","author"] { atomCurrent?.author = text }
-        if path.suffix(2) == ["entry","published"] { atomCurrent?.publishedAt = ISO8601DateFormatter().date(from: text) }
+        if path.suffix(2) == ["entry","published"] { atomCurrent?.publishedAt = RFCDate.parse(text) }
         if lower == "entry" {
             if let item = atomCurrent {
                 atomItems.append(item)
@@ -210,14 +208,4 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         // Return the first favicon path (most likely to exist)
         return URL(string: faviconPaths[0], relativeTo: baseHost)?.absoluteURL
     }
-}
-
-extension DateFormatter {
-    static let rfc822: DateFormatter = {
-        let df = DateFormatter()
-        df.locale = Locale(identifier: "en_US_POSIX")
-        df.timeZone = TimeZone(secondsFromGMT: 0)
-        df.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-        return df
-    }()
 }

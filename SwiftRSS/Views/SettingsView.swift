@@ -8,6 +8,7 @@
 import SwiftUI
 import CachedAsyncImage
 import UniformTypeIdentifiers
+import SwiftData
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
@@ -36,7 +37,12 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("Images") {
+                Section("AI") {
+                    TextField("Gemini API Key", text: $geminiApiKey)
+                        .textContentType(.password)
+                }
+                
+                Section("Debug") {
                     Button {
                         deleteAlertPresented = true
                     } label: {
@@ -49,7 +55,7 @@ struct SettingsView: View {
                             }
                             
 //                            Spacer()
-//                            
+//
 //                            Text("{Cache Size}")
                         }
                         .contentShape(.rect)
@@ -102,7 +108,7 @@ struct SettingsView: View {
                                 if url.startAccessingSecurityScopedResource() {
                                     defer { url.stopAccessingSecurityScopedResource() }
                                     let data = try Data(contentsOf: url)
-                                    _ = try await FeedService.importOPML(data: data, context: context)
+                                    _ = try await FeedService.importOPML(data: data, modelContainer: context.container)
                                 } else {
                                     importError = "Unable to access the selected file"
                                 }

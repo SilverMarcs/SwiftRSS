@@ -51,7 +51,7 @@ struct AddFeedSheet: View {
         guard let url = URL(string: urlString) else { return }
         errorText = nil
         do {
-            _ = try await FeedService.subscribe(url: url, context: context)
+            _ = try await FeedService.subscribe(url: url, modelContainer: context.container)
             dismiss()
         } catch {
             errorText = "Failed to add feed: \(error.localizedDescription)"

@@ -49,11 +49,11 @@ struct ArticleListContainerView: View {
     private func refreshCurrentScope() async {
         switch filter {
         case .feed(let feed):
-            let _ = try? await FeedService.refresh(feed, context: context)
+            let _ = try? await FeedService.refresh(feed, modelContainer: context.container)
         case .starred:
             print("Doesnt make sense to refresh")
         default:
-            await FeedService.refreshAll(context: context)
+            let _ = try? await FeedService.refreshAll(modelContainer: context.container)
         }
     }
 }
