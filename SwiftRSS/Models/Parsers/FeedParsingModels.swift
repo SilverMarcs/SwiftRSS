@@ -23,6 +23,7 @@ struct FeedMeta {
 }
 
 enum FeedFormat { case rss2, atom }
+
 enum FeedError: Error {
     case invalidResponse
     case notFeed

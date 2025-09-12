@@ -11,7 +11,7 @@ import SwiftData
 actor BackgroundFeedProcessor {
     private let modelContainer: ModelContainer
     private let batchSize = 50
-    private let maxArticlesPerFeed = 50
+    private let maxArticlesPerFeed = 100
     
     init(modelContainer: ModelContainer) {
         self.modelContainer = modelContainer
@@ -72,6 +72,7 @@ actor BackgroundFeedProcessor {
         
         // Process articles
         try await processArticles(parsed.items, into: feed, context: context)
+        try cleanupOldArticles(feed: feed, context: context)
         try context.save()
         
         return feed

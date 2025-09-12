@@ -33,7 +33,7 @@ struct FeedService {
         }
     }
 
-    // MARK: - Public API (all use background processing)
+    // MARK: - Public API
     static func subscribe(url: URL, modelContainer: ModelContainer) async throws -> Feed {
         let processor = BackgroundFeedProcessor(modelContainer: modelContainer)
         return try await processor.subscribe(url: url)

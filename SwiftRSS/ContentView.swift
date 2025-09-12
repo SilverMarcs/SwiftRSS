@@ -46,7 +46,12 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Feed")
-            .navigationDestinations(path: $path)
+            .navigationDestination(for: ArticleFilter.self) { filter in
+                ArticleListContainerView(filter: filter)
+            }
+            .navigationDestination(for: Article.self) { article in
+                ArticleReaderView(article: article)
+            }
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
                 if !initialFetchDone {
