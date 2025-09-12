@@ -23,6 +23,7 @@ struct FeedRow: View {
                     .imageScale(.small)
             }
         }
+        .badge(feed.articles.count(where: { !$0.isRead })) 
     }
 }
 

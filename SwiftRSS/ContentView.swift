@@ -10,7 +10,6 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-//    @Environment(\.scenePhase) private var scenePhase
     
     @Query(sort: \Feed.title) private var feeds: [Feed]
 
@@ -41,7 +40,6 @@ struct ContentView: View {
                     ForEach(feeds) { feed in
                         NavigationLink(value: ArticleFilter.feed(feed)) {
                             FeedRow(feed: feed)
-                                .badge(feed.articles.count(where: { !$0.isRead })) 
                         }
                     }
                     .onDelete(perform: deleteFeeds)
@@ -56,13 +54,6 @@ struct ContentView: View {
                     initialFetchDone = true
                 }
             }
-//            .onChange(of: scenePhase) {
-//                if scenePhase == .active {
-//                    Task {
-//                        await FeedService.refreshAll(context: context)
-//                    }
-//                }
-//            }
             .refreshable {
                 let _ = try? await FeedService.refreshAll(modelContainer: context.container)
             }

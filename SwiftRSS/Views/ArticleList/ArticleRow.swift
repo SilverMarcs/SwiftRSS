@@ -84,7 +84,7 @@ struct ArticleRow: View {
             article.isRead.toggle()
             try? context.save()
         } label: {
-            Label(article.isRead ? "Mark as Unread" : "Mark as Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
+            Label(article.isRead ? "Mark Unread" : "Mark Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
         }
     }
     
