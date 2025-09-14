@@ -144,7 +144,9 @@ actor BackgroundFeedProcessor {
     private func cleanupOldArticles(feed: Feed, context: ModelContext) throws {
         let allArticles = feed.articles.sorted { $0.publishedAt > $1.publishedAt }
         if allArticles.count > maxArticlesPerFeed {
-            let toDelete = Array(allArticles[maxArticlesPerFeed...])
+            // Only delete articles that are not starred
+            let articlesToConsider = Array(allArticles[maxArticlesPerFeed...])
+            let toDelete = articlesToConsider.filter { !$0.isStarred }
             toDelete.forEach { context.delete($0) }
         }
     }
