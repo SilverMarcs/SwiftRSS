@@ -15,6 +15,12 @@ struct SwiftRSSApp: App {
             ContentView()
         }
         .modelContainer(sharedContainer)
+        
+        #if os(macOS)
+        Settings {
+            SettingsView()
+        }
+        #endif
     }
 }
 

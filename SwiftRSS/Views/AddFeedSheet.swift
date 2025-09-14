@@ -14,8 +14,10 @@ struct AddFeedSheet: View {
             Form {
                 Section {
                     TextField("Enter feed url", text: $urlString)
+                    #if !os(macOS)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.URL)
+                    #endif
                 } header: {
                     Text("Feed URL")
                 } footer: {
@@ -29,6 +31,7 @@ struct AddFeedSheet: View {
             }
             .navigationTitle("Add Feed")
             .toolbarTitleDisplayMode(.inline)
+            .formStyle(.grouped)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

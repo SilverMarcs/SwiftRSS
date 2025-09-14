@@ -7,12 +7,17 @@
 
 import SwiftUI
 
-struct Toolbar__: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+extension ToolbarItemPlacement {
+    /// A cross-platform toolbar placement that adapts to the platform:
+    /// - iOS: Uses `.bottomBar` for bottom placement
+    /// - macOS: Uses `.automatic` for appropriate placement
+    static var platformBar: ToolbarItemPlacement {
+#if os(iOS)
+        return .bottomBar
+#elseif os(macOS)
+        return .automatic
+#else
+        return .automatic
+#endif
     }
-}
-
-#Preview {
-    Toolbar__()
 }

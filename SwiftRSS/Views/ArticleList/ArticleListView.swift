@@ -25,7 +25,7 @@ struct ArticleListView: View {
         .contentMargins(.horizontal, 5)
         .navigationSubtitle("\(articles.count) articles")
         .toolbar {
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .platformBar) {
                 Button {
                     // Only show alert if there are unread articles
                     if !articles.allSatisfy({ $0.isRead }) {

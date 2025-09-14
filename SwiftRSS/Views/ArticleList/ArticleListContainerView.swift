@@ -40,9 +40,12 @@ struct ArticleListContainerView: View {
                 }
             }
             
+            #if os(macOS)
+            ToolbarSpacer()
+            #else
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
-            
             ToolbarSpacer(.fixed, placement: .bottomBar)
+            #endif
         }
     }
     

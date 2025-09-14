@@ -23,7 +23,7 @@ struct ArticleReaderView: View {
             article.isRead = true
         }
         .toolbar {
-            ToolbarItemGroup(placement: .bottomBar) {
+            ToolbarItemGroup(placement: .platformBar) {
                 Button {
                     article.isRead.toggle()
                 } label: {
@@ -36,9 +36,9 @@ struct ArticleReaderView: View {
                 }
             }
             
-            ToolbarSpacer(.flexible, placement: .bottomBar)
+            ToolbarSpacer(.flexible, placement: .platformBar)
             
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .platformBar) {
                 Button {
                     showAISheet = true
                 } label: {
@@ -46,18 +46,23 @@ struct ArticleReaderView: View {
                 }
                 .disabled(extractedText == nil)
             }
+            #if !os(macOS)
             .matchedTransitionSource(id: "ai-button", in: aiTransition)
+            #endif
             
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .platformBar) {
                 ShareLink(item: article.link)
             }
         }
         .sheet(isPresented: $showAISheet) {
             if let text = extractedText {
                 AISummaryView(extractedText: text)
-                    .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
                     .presentationDetents([.medium])
+                    #if !os(macOS)
+                    .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
+                    #endif
             }
         }
+
     }
 }

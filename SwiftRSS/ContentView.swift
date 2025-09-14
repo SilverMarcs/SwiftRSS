@@ -16,12 +16,11 @@ struct ContentView: View {
     @State var showAddFeed: Bool = false
     @State var showSettings: Bool = false
     @State var initialFetchDone: Bool = false
-    @State private var path = NavigationPath()
     
     @Namespace private var transition
 
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             List {
                 Section("Smart") {
                     ForEach(ArticleFilter.smartFilters, id: \.self) { filter in
@@ -63,6 +62,7 @@ struct ContentView: View {
                 let _ = try? await FeedService.refreshAll(modelContainer: context.container)
             }
             .toolbar {
+                #if !os(macOS)
                 ToolbarItem {
                     Button {
                         showSettings.toggle()
@@ -70,22 +70,27 @@ struct ContentView: View {
                         Image(systemName: "gear")
                     }
                 }
+                #endif
                 
-                ToolbarSpacer(.flexible, placement: .bottomBar)
+                ToolbarSpacer(.flexible, placement: .platformBar)
                 
-                ToolbarItem(placement: .bottomBar) {
+                ToolbarItem(placement: .platformBar) {
                     Button {
                         showAddFeed.toggle()
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
+                #if !os(macOS)
                 .matchedTransitionSource(id: "add-feed", in: transition)
+                #endif
             }
             .sheet(isPresented: $showAddFeed) {
                 AddFeedSheet()
                     .presentationDetents([.medium])
+                    #if !os(macOS)
                     .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
+                    #endif
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
