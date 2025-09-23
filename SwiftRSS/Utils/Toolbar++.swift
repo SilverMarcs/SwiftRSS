@@ -12,12 +12,10 @@ extension ToolbarItemPlacement {
     /// - iOS: Uses `.bottomBar` for bottom placement
     /// - macOS: Uses `.automatic` for appropriate placement
     static var platformBar: ToolbarItemPlacement {
-#if os(iOS)
+        #if os(iOS)
         return .bottomBar
-#elseif os(macOS)
+        #else
         return .automatic
-#else
-        return .automatic
-#endif
+        #endif
     }
 }

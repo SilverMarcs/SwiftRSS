@@ -72,11 +72,6 @@ struct SettingsView: View {
                         Text("This will clear all cached images, freeing up storage space.")
                     }
                 }
-
-                Section("AI") {
-                    TextField("Gemini API Key", text: $geminiApiKey)
-                        .textContentType(.password)
-                }
             }
             .formStyle(.grouped)
             .navigationTitle("Settings")
@@ -84,11 +79,10 @@ struct SettingsView: View {
             #if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
+                    Button {
                         dismiss()
-                    }) {
+                    } label: {
                         Image(systemName: "xmark")
-                            
                     }
                 }
             }
