@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CachedAsyncImage
+import SwiftMediaViewer
 
 struct FeedRow: View {
     let feed: Feed
@@ -16,7 +16,7 @@ struct FeedRow: View {
             Text(feed.title)
         } icon: {
             if let imageURL = feed.thumbnailURL {
-                CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                CachedAsyncImage(url: imageURL, targetSize: 50)
                     .clipShape(.rect(cornerRadius: 5))
             } else {
                 Image(systemName: "dot.radiowaves.left.and.right")

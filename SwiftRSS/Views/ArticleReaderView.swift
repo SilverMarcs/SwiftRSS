@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Reeeed
+import SwiftMediaViewer
 
 struct ArticleReaderView: View {
     var article: Article
@@ -18,6 +19,8 @@ struct ArticleReaderView: View {
     var body: some View {
         ReeeederView(url: article.link) { text in
             extractedText = text
+        } imageRenderer: { url in
+            SMVImage(url: url.absoluteString, targetSize: 400)
         }
         .onAppear {
             article.isRead = true

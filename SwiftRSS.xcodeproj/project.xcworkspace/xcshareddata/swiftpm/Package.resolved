@@ -1,15 +1,6 @@
 {
-  "originHash" : "05974727f1316248d82c5c0d7556e11a925dad76331f39a3ed964e4c66a605e0",
+  "originHash" : "98d27a98f524a5a91e6d76d620c1de460d42a69e56e3639e9406bb537fd4837c",
   "pins" : [
-    {
-      "identity" : "cachedasyncimage",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SilverMarcs/CachedAsyncImage",
-      "state" : {
-        "branch" : "main",
-        "revision" : "4c090899f9ac13c2e9affbb2b54319f98b0c7d2d"
-      }
-    },
     {
       "identity" : "fuzi",
       "kind" : "remoteSourceControl",
@@ -25,7 +16,16 @@
       "location" : "https://github.com/SilverMarcs/reeeed",
       "state" : {
         "branch" : "main",
-        "revision" : "c562830b3e8c2ebf7e3f1e9cf9908ee187743985"
+        "revision" : "4935efe7058ea52f4fde626f79ceda042c5a6c13"
+      }
+    },
+    {
+      "identity" : "swiftmediaviewer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SilverMarcs/SwiftMediaViewer",
+      "state" : {
+        "branch" : "main",
+        "revision" : "f84f03d0aacb8fab0cef181565c7489f1f7c4c60"
       }
     }
   ],

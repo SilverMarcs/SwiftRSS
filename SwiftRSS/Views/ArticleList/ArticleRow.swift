@@ -7,7 +7,7 @@
 
 import SwiftUI
 import SwiftData
-import CachedAsyncImage
+import SwiftMediaViewer
 
 struct ArticleRow: View {
     @Environment(\.modelContext) private var context
@@ -18,7 +18,7 @@ struct ArticleRow: View {
         VStack(alignment: .leading) {
             // Image at the top
             if let imageURL = article.featuredImageURL {
-                CachedAsyncImage(url: imageURL, targetSize: .init(width: 600, height: 450))
+                CachedAsyncImage(url: imageURL, targetSize: 400)
                     .aspectRatio(contentMode: .fill)
                     .frame(height: 170)
                     .cornerRadius(8)
@@ -32,7 +32,7 @@ struct ArticleRow: View {
             HStack {
                 Group {
                     if let imageURL = article.feed.thumbnailURL {
-                        CachedAsyncImage(url: imageURL, targetSize: .init(width: 50, height: 50))
+                        CachedAsyncImage(url: imageURL, targetSize: 50)
                             .clipShape(.rect(cornerRadius: 4))
                     } else {
                         Image(systemName: "apple.book.pages.fill")

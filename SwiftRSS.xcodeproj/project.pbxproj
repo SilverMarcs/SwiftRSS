@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		0835ADC62E6C959F006C5F02 /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 0835ADC52E6C959F006C5F02 /* Reeeed */; };
-		0835ADCC2E6C9831006C5F02 /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 0835ADCB2E6C9831006C5F02 /* Reeeed */; };
+		08BB38A52E849B3A00BDF671 /* SwiftMediaViewer in Frameworks */ = {isa = PBXBuildFile; productRef = 08BB38A42E849B3A00BDF671 /* SwiftMediaViewer */; };
+		08BB38A82E849B4400BDF671 /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 08BB38A72E849B4400BDF671 /* Reeeed */; };
+		08BB38AB2E849B5700BDF671 /* SwiftMediaViewer in Frameworks */ = {isa = PBXBuildFile; productRef = 08BB38AA2E849B5700BDF671 /* SwiftMediaViewer */; };
+		08BB39042E849D5100BDF671 /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 08BB39032E849D5100BDF671 /* Reeeed */; };
 		08C582D12E6C76D200D4033A /* Reeeed in Frameworks */ = {isa = PBXBuildFile; productRef = 08C582D02E6C76D200D4033A /* Reeeed */; };
-		08F1A2142E6BD37B003B59C6 /* CachedAsyncImage in Frameworks */ = {isa = PBXBuildFile; productRef = 08F1A2132E6BD37B003B59C6 /* CachedAsyncImage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,10 +45,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0835ADCC2E6C9831006C5F02 /* Reeeed in Frameworks */,
+				08BB39042E849D5100BDF671 /* Reeeed in Frameworks */,
+				08BB38A82E849B4400BDF671 /* Reeeed in Frameworks */,
+				08BB38A52E849B3A00BDF671 /* SwiftMediaViewer in Frameworks */,
+				08BB38AB2E849B5700BDF671 /* SwiftMediaViewer in Frameworks */,
 				0835ADC62E6C959F006C5F02 /* Reeeed in Frameworks */,
 				08C582D12E6C76D200D4033A /* Reeeed in Frameworks */,
-				08F1A2142E6BD37B003B59C6 /* CachedAsyncImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,10 +93,12 @@
 			);
 			name = SwiftRSS;
 			packageProductDependencies = (
-				08F1A2132E6BD37B003B59C6 /* CachedAsyncImage */,
 				08C582D02E6C76D200D4033A /* Reeeed */,
 				0835ADC52E6C959F006C5F02 /* Reeeed */,
-				0835ADCB2E6C9831006C5F02 /* Reeeed */,
+				08BB38A42E849B3A00BDF671 /* SwiftMediaViewer */,
+				08BB38A72E849B4400BDF671 /* Reeeed */,
+				08BB38AA2E849B5700BDF671 /* SwiftMediaViewer */,
+				08BB39032E849D5100BDF671 /* Reeeed */,
 			);
 			productName = SwiftRSS;
 			productReference = 08AE155C2E6BC6E600BBBE1A /* SwiftRSS.app */;
@@ -123,8 +129,8 @@
 			mainGroup = 08AE15532E6BC6E600BBBE1A;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				08F1A2122E6BD37B003B59C6 /* XCRemoteSwiftPackageReference "CachedAsyncImage" */,
-				0835ADCA2E6C9831006C5F02 /* XCRemoteSwiftPackageReference "reeeed" */,
+				08BB38A92E849B5700BDF671 /* XCRemoteSwiftPackageReference "SwiftMediaViewer" */,
+				08BB39022E849D5100BDF671 /* XCRemoteSwiftPackageReference "reeeed" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 08AE155D2E6BC6E600BBBE1A /* Products */;
@@ -405,17 +411,17 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		0835ADCA2E6C9831006C5F02 /* XCRemoteSwiftPackageReference "reeeed" */ = {
+		08BB38A92E849B5700BDF671 /* XCRemoteSwiftPackageReference "SwiftMediaViewer" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SilverMarcs/reeeed";
+			repositoryURL = "https://github.com/SilverMarcs/SwiftMediaViewer";
 			requirement = {
 				branch = main;
 				kind = branch;
 			};
 		};
-		08F1A2122E6BD37B003B59C6 /* XCRemoteSwiftPackageReference "CachedAsyncImage" */ = {
+		08BB39022E849D5100BDF671 /* XCRemoteSwiftPackageReference "reeeed" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SilverMarcs/CachedAsyncImage";
+			repositoryURL = "https://github.com/SilverMarcs/reeeed";
 			requirement = {
 				branch = main;
 				kind = branch;
@@ -428,19 +434,27 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Reeeed;
 		};
-		0835ADCB2E6C9831006C5F02 /* Reeeed */ = {
+		08BB38A42E849B3A00BDF671 /* SwiftMediaViewer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 0835ADCA2E6C9831006C5F02 /* XCRemoteSwiftPackageReference "reeeed" */;
+			productName = SwiftMediaViewer;
+		};
+		08BB38A72E849B4400BDF671 /* Reeeed */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Reeeed;
+		};
+		08BB38AA2E849B5700BDF671 /* SwiftMediaViewer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08BB38A92E849B5700BDF671 /* XCRemoteSwiftPackageReference "SwiftMediaViewer" */;
+			productName = SwiftMediaViewer;
+		};
+		08BB39032E849D5100BDF671 /* Reeeed */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08BB39022E849D5100BDF671 /* XCRemoteSwiftPackageReference "reeeed" */;
 			productName = Reeeed;
 		};
 		08C582D02E6C76D200D4033A /* Reeeed */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Reeeed;
-		};
-		08F1A2132E6BD37B003B59C6 /* CachedAsyncImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 08F1A2122E6BD37B003B59C6 /* XCRemoteSwiftPackageReference "CachedAsyncImage" */;
-			productName = CachedAsyncImage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
