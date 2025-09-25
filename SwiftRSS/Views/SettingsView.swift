@@ -8,11 +8,11 @@
 import SwiftUI
 import SwiftMediaViewer
 import UniformTypeIdentifiers
-import SwiftData
+import Observation
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.modelContext) private var context
+    @Environment(FeedStore.self) private var store
     @State private var deleteAlertPresented = false
     @State private var showFileImporter = false
     @State private var importError: String?
@@ -62,10 +62,7 @@ struct SettingsView: View {
                     }
                     .alert("Clear Image Cache", isPresented: $deleteAlertPresented) {
                         Button("Clear", role: .destructive) {
-                            Task {
-                                await MemoryCache.shared.clearCache()
-                                await DiskCache.shared.clearCache()
-                            }
+                            CachedAsyncImageConfiguration.clearAllCaches()
                         }
                         Button("Cancel", role: .cancel) { }
                     } message: {
@@ -102,7 +99,7 @@ struct SettingsView: View {
                                 if url.startAccessingSecurityScopedResource() {
                                     defer { url.stopAccessingSecurityScopedResource() }
                                     let data = try Data(contentsOf: url)
-                                    _ = try await FeedService.importOPML(data: data, modelContainer: context.container)
+                                    _ = try await store.importOPML(data: data)
                                 } else {
                                     importError = "Unable to access the selected file"
                                 }
@@ -125,5 +122,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
+    SettingsView().environment(FeedStore())
 }

@@ -8,9 +8,11 @@
 import SwiftUI
 import Reeeed
 import SwiftMediaViewer
+import Observation
 
 struct ArticleReaderView: View {
     var article: Article
+    @Environment(FeedStore.self) private var store
     @State var extractedText: String? = nil
     @State private var showAISheet = false
     
@@ -22,18 +24,16 @@ struct ArticleReaderView: View {
         } imageRenderer: { url in
             SMVImage(url: url.absoluteString, targetSize: 400)
         }
-        .onAppear {
-            article.isRead = true
-        }
+        .onAppear { store.setRead(articleID: article.id, true) }
         .toolbar {
             ToolbarItemGroup(placement: .platformBar) {
                 Button {
-                    article.isRead.toggle()
+                    store.toggleRead(articleID: article.id)
                 } label: {
                     Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
                 }
                 Button {
-                    article.isStarred.toggle()
+                    store.toggleStar(articleID: article.id)
                 } label: {
                     Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
                 }

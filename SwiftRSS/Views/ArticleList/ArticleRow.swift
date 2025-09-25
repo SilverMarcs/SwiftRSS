@@ -6,11 +6,11 @@
 //
 
 import SwiftUI
-import SwiftData
 import SwiftMediaViewer
+import Observation
 
 struct ArticleRow: View {
-    @Environment(\.modelContext) private var context
+    @Environment(FeedStore.self) private var store
     
     let article: Article
 
@@ -31,7 +31,7 @@ struct ArticleRow: View {
             
             HStack {
                 Group {
-                    if let imageURL = article.feed.thumbnailURL {
+                    if let imageURL = article.feedThumbnailURL {
                         CachedAsyncImage(url: imageURL, targetSize: 50)
                             .clipShape(.rect(cornerRadius: 4))
                     } else {
@@ -41,7 +41,7 @@ struct ArticleRow: View {
                 }
                 .frame(width: 15, height: 15)
                 
-                Text(article.feed.title)
+                Text(article.feedTitle)
                     .lineLimit(1)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -81,8 +81,7 @@ struct ArticleRow: View {
     
     var readButton: some View {
         Button {
-            article.isRead.toggle()
-            try? context.save()
+            store.toggleRead(articleID: article.id)
         } label: {
             Label(article.isRead ? "Mark Unread" : "Mark Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
         }
@@ -90,8 +89,7 @@ struct ArticleRow: View {
     
     var starButton: some View {
         Button {
-            article.isStarred.toggle()
-            try? context.save()
+            store.toggleStar(articleID: article.id)
         } label: {
             Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
         }

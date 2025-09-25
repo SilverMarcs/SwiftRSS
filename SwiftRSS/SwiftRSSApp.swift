@@ -6,26 +6,23 @@
 //
 
 import SwiftUI
-import SwiftData
+import Observation
 
 @main
 struct SwiftRSSApp: App {
+    @State private var store = FeedStore()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(store)
         }
-        .modelContainer(sharedContainer)
         
         #if os(macOS)
         Settings {
             SettingsView()
+                .environment(store)
         }
         #endif
     }
 }
-
-let sharedContainer: ModelContainer = {
-    let schema = Schema([Feed.self, Article.self])
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-    return try! ModelContainer(for: schema, configurations: [config])
-}()

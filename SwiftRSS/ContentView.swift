@@ -6,12 +6,10 @@
 //
 
 import SwiftUI
-import SwiftData
+import Observation
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var context
-    
-    @Query(sort: \Feed.title) private var feeds: [Feed]
+    @Environment(FeedStore.self) private var store
 
     @State var showAddFeed: Bool = false
     @State var showSettings: Bool = false
@@ -36,7 +34,7 @@ struct ContentView: View {
                 }
 
                 Section("Feeds") {
-                    ForEach(feeds) { feed in
+                    ForEach(store.feeds) { feed in
                         NavigationLink(value: ArticleFilter.feed(feed)) {
                             FeedRow(feed: feed)
                         }
@@ -54,12 +52,12 @@ struct ContentView: View {
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
                 if !initialFetchDone {
-                    let _ = try? await FeedService.refreshAll(modelContainer: context.container)
+                    let _ = try? await store.refreshAll()
                     initialFetchDone = true
                 }
             }
             .refreshable {
-                let _ = try? await FeedService.refreshAll(modelContainer: context.container)
+                let _ = try? await store.refreshAll()
             }
             .toolbar {
                 #if !os(macOS)
@@ -102,8 +100,8 @@ struct ContentView: View {
     // MARK: - Delete Function
     private func deleteFeeds(offsets: IndexSet) {
         for index in offsets {
-            let feedToDelete = feeds[index]
-            context.delete(feedToDelete)
+            let feedToDelete = store.feeds[index]
+            store.deleteFeed(feedToDelete)
         }
     }
 }

@@ -36,9 +36,9 @@ final class XMLFeedParser: NSObject, XMLParserDelegate {
         parser.parse()
         
         // Add favicon fallback if no thumbnail found
-        if rssMeta.thumbnailURL == nil {
-            rssMeta.thumbnailURL = getFaviconURL()
-        }
+         if rssMeta.thumbnailURL == nil {
+             rssMeta.thumbnailURL = getFaviconURL()
+         }
         
         return (rssMeta, rssItems)
     }

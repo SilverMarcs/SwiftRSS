@@ -7,9 +7,11 @@
 
 import SwiftUI
 import SwiftMediaViewer
+import Observation
 
 struct FeedRow: View {
     let feed: Feed
+    @Environment(FeedStore.self) private var store
     
     var body: some View {
         Label {
@@ -23,10 +25,7 @@ struct FeedRow: View {
                     .imageScale(.small)
             }
         }
-        .badge(feed.articles.count(where: { !$0.isRead })) 
+        .badge(store.articles.filter { $0.feedID == feed.id && !$0.isRead }.count)
     }
 }
-
-#Preview {
-    FeedRow(feed: .init(title: "Test", url: URL(string: "https://com.example.com")!))
-}
+ 

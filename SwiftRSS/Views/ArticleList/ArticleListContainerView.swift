@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
-import SwiftData
+import Observation
 
 struct ArticleListContainerView: View {
-    @Environment(\.modelContext) private var context
+    @Environment(FeedStore.self) private var store
     
     let filter: ArticleFilter
     
@@ -52,11 +52,11 @@ struct ArticleListContainerView: View {
     private func refreshCurrentScope() async {
         switch filter {
         case .feed(let feed):
-            let _ = try? await FeedService.refresh(feed, modelContainer: context.container)
+            let _ = try? await store.refresh(feed)
         case .starred:
             print("Doesnt make sense to refresh")
         default:
-            let _ = try? await FeedService.refreshAll(modelContainer: context.container)
+            let _ = try? await store.refreshAll()
         }
     }
 }

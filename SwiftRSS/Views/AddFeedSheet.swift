@@ -1,8 +1,8 @@
 import SwiftUI
-import SwiftData
+import Observation
 
 struct AddFeedSheet: View {
-    @Environment(\.modelContext) private var context
+    @Environment(FeedStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
     @State private var urlString = ""
@@ -54,7 +54,7 @@ struct AddFeedSheet: View {
         guard let url = URL(string: urlString) else { return }
         errorText = nil
         do {
-            _ = try await FeedService.subscribe(url: url, modelContainer: context.container)
+            _ = try await store.subscribe(url: url)
             dismiss()
         } catch {
             errorText = "Failed to add feed: \(error.localizedDescription)"

@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 struct FeedService {
     // Fetch raw data
@@ -31,26 +30,5 @@ struct FeedService {
         case .rss2: return try parser.parseRSS2()
         case .atom: return try parser.parseAtom()
         }
-    }
-
-    // MARK: - Public API
-    static func subscribe(url: URL, modelContainer: ModelContainer) async throws -> Feed {
-        let processor = BackgroundFeedProcessor(modelContainer: modelContainer)
-        return try await processor.subscribe(url: url)
-    }
-
-    static func refresh(_ feed: Feed, modelContainer: ModelContainer) async throws -> Int {
-        let processor = BackgroundFeedProcessor(modelContainer: modelContainer)
-        return try await processor.refreshSingle(feedURL: feed.url)
-    }
-
-    static func refreshAll(modelContainer: ModelContainer) async throws -> Int {
-        let processor = BackgroundFeedProcessor(modelContainer: modelContainer)
-        return try await processor.refreshAll()
-    }
-    
-    static func importOPML(data: Data, modelContainer: ModelContainer) async throws -> [Feed] {
-        let processor = BackgroundFeedProcessor(modelContainer: modelContainer)
-        return try await processor.importOPML(data: data)
     }
 }
