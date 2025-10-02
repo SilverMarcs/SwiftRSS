@@ -47,7 +47,7 @@ struct ContentView: View {
                 ArticleListContainerView(filter: filter)
             }
             .navigationDestination(for: Article.self) { article in
-                ArticleReaderView(article: article)
+                ArticleReaderView(articleID: article.id)
             }
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {

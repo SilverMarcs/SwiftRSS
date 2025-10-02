@@ -11,61 +11,69 @@ import SwiftMediaViewer
 import Observation
 
 struct ArticleReaderView: View {
-    var article: Article
+    var articleID: String
     @Environment(FeedStore.self) private var store
+    
+    private var article: Article? {
+        store.articles.first { $0.id == articleID }
+    }
+    
     @State var extractedText: String? = nil
     @State private var showAISheet = false
     
     @Namespace private var aiTransition
     
     var body: some View {
-        ReeeederView(url: article.link) { text in
-            extractedText = text
-        } imageRenderer: { url in
-            SMVImage(url: url.absoluteString, targetSize: 400)
-        }
-        .onAppear { store.setRead(articleID: article.id, true) }
-        .toolbar {
-            ToolbarItemGroup(placement: .platformBar) {
-                Button {
-                    store.toggleRead(articleID: article.id)
-                } label: {
-                    Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
+        if let article = article {
+            ReeeederView(url: article.link) { text in
+                extractedText = text
+            } imageRenderer: { url in
+                SMVImage(url: url.absoluteString, targetSize: 400)
+            }
+            .onAppear { store.setRead(articleID: articleID, true) }
+            .toolbar {
+                ToolbarItemGroup(placement: .platformBar) {
+                    Button {
+                        store.toggleRead(articleID: articleID)
+                    } label: {
+                        Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
+                    }
+                    Button {
+                        store.toggleStar(articleID: articleID)
+                    } label: {
+                        Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
+                    }
                 }
-                Button {
-                    store.toggleStar(articleID: article.id)
-                } label: {
-                    Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
+                
+                ToolbarSpacer(.flexible, placement: .platformBar)
+                
+                ToolbarItem(placement: .platformBar) {
+                    Button {
+                        showAISheet = true
+                    } label: {
+                        Label("AI Summary", systemImage: "sparkles")
+                    }
+                    .disabled(extractedText == nil)
+                }
+                #if !os(macOS)
+                .matchedTransitionSource(id: "ai-button", in: aiTransition)
+                #endif
+                
+                ToolbarItem(placement: .platformBar) {
+                    ShareLink(item: article.link)
                 }
             }
-            
-            ToolbarSpacer(.flexible, placement: .platformBar)
-            
-            ToolbarItem(placement: .platformBar) {
-                Button {
-                    showAISheet = true
-                } label: {
-                    Label("AI Summary", systemImage: "sparkles")
+            .sheet(isPresented: $showAISheet) {
+                if let text = extractedText {
+                    AISummaryView(extractedText: text)
+                        .presentationDetents([.medium])
+                        #if !os(macOS)
+                        .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
+                        #endif
                 }
-                .disabled(extractedText == nil)
             }
-            #if !os(macOS)
-            .matchedTransitionSource(id: "ai-button", in: aiTransition)
-            #endif
-            
-            ToolbarItem(placement: .platformBar) {
-                ShareLink(item: article.link)
-            }
+        } else {
+            Text("Article not found")
         }
-        .sheet(isPresented: $showAISheet) {
-            if let text = extractedText {
-                AISummaryView(extractedText: text)
-                    .presentationDetents([.medium])
-                    #if !os(macOS)
-                    .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
-                    #endif
-            }
-        }
-
     }
 }
