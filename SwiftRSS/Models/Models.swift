@@ -53,24 +53,10 @@ struct Article: Identifiable, Hashable {
     // Manual Hashable implementation (excluding closure)
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(feed)
-        hasher.combine(link)
-        hasher.combine(title)
-        hasher.combine(author)
-        hasher.combine(contentHTML)
-        hasher.combine(featuredImageURL)
-        hasher.combine(publishedAt)
     }
     
     // Manual Equatable implementation (excluding closure)
     static func == (lhs: Article, rhs: Article) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.feed == rhs.feed &&
-        lhs.link == rhs.link &&
-        lhs.title == rhs.title &&
-        lhs.author == rhs.author &&
-        lhs.contentHTML == rhs.contentHTML &&
-        lhs.featuredImageURL == rhs.featuredImageURL &&
-        lhs.publishedAt == rhs.publishedAt
+        lhs.id == rhs.id
     }
 }

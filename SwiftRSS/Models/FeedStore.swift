@@ -7,17 +7,8 @@ final class FeedStore {
     var feeds: [Feed] = [] { didSet { persistFeeds() } }
     var articles: [Article] = [] // Transient, loaded fresh from feeds
     
-    // Trigger SwiftUI updates when article states change
-    private var articleStatesVersion = 0
-    
     // Efficient O(1) lookup for article states using Dictionary
-    private var articleStates: [String: ArticleState] = [:] { 
-        didSet { 
-            persistArticleStates()
-            // Trigger SwiftUI re-render when states change
-            articleStatesVersion += 1
-        } 
-    }
+    private var articleStates: [String: ArticleState] = [:] { didSet { persistArticleStates() } }
 
     @ObservationIgnored
     private let defaults = UserDefaults.standard
@@ -109,9 +100,7 @@ final class FeedStore {
                 featuredImageURL: item.featuredImageURL,
                 publishedAt: item.publishedAt ?? .now,
                 stateProvider: { [weak self] in
-                    // Capture version to ensure SwiftUI re-evaluates when states change
-                    _ = self?.articleStatesVersion
-                    return self?.articleStates[articleID] ?? ArticleState()
+                    self?.articleStates[articleID] ?? ArticleState()
                 }
             )
             newArticles.append(article)
