@@ -31,7 +31,7 @@ struct ArticleRow: View {
             
             HStack {
                 Group {
-                    if let imageURL = article.feedThumbnailURL {
+                    if let imageURL = article.feed.thumbnailURL {
                         CachedAsyncImage(url: imageURL, targetSize: 50)
                             .clipShape(.rect(cornerRadius: 4))
                     } else {
@@ -41,7 +41,7 @@ struct ArticleRow: View {
                 }
                 .frame(width: 15, height: 15)
                 
-                Text(article.feedTitle)
+                Text(article.feed.title)
                     .lineLimit(1)
                     .font(.caption)
                     .foregroundStyle(.secondary)

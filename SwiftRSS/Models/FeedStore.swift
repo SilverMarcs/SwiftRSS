@@ -3,31 +3,59 @@ import Observation
 
 @Observable
 final class FeedStore {
-    // Persist minimal data only
+    // Persist only feeds and article states (read/starred)
     var feeds: [Feed] = [] { didSet { persistFeeds() } }
-    var articles: [Article] = [] { didSet { persistArticles() } }
+    var articles: [Article] = [] // Transient, loaded fresh from feeds
+    
+    // Trigger SwiftUI updates when article states change
+    private var articleStatesVersion = 0
+    
+    // Efficient O(1) lookup for article states using Dictionary
+    private var articleStates: [String: ArticleState] = [:] { 
+        didSet { 
+            persistArticleStates()
+            // Trigger SwiftUI re-render when states change
+            articleStatesVersion += 1
+        } 
+    }
 
     @ObservationIgnored
     private let defaults = UserDefaults.standard
     @ObservationIgnored
-    private let feedsKey = "feeds_v1"
+    private let feedsKey = "feeds_v2"
     @ObservationIgnored
-    private let articlesKey = "articles_v1"
+    private let articleStatesKey = "articleStates_v2"
 
     init() {
         load()
+        // Load articles fresh from feeds on init
+        Task {
+            try? await refreshAll()
+        }
     }
 
     // MARK: - Persistence
     private func load() {
         let dec = JSONDecoder()
+        
+        // Load feeds
         if let data = defaults.data(forKey: feedsKey),
            let decoded = try? dec.decode([Feed].self, from: data) {
             feeds = decoded
         }
-        if let data = defaults.data(forKey: articlesKey),
-           let decoded = try? dec.decode([Article].self, from: data) {
-            articles = decoded
+        
+        // Load article states
+        if let data = defaults.data(forKey: articleStatesKey),
+           let decoded = try? dec.decode([String: ArticleState].self, from: data) {
+            articleStates = decoded
+        }
+        
+        // Clean up old keys if migrating
+        if defaults.data(forKey: "feeds_v1") != nil {
+            defaults.removeObject(forKey: "feeds_v1")
+        }
+        if defaults.data(forKey: "articles_v1") != nil {
+            defaults.removeObject(forKey: "articles_v1")
         }
     }
 
@@ -38,10 +66,10 @@ final class FeedStore {
         }
     }
 
-    private func persistArticles() {
+    private func persistArticleStates() {
         let enc = JSONEncoder()
-        if let data = try? enc.encode(articles) {
-            defaults.set(data, forKey: articlesKey)
+        if let data = try? enc.encode(articleStates) {
+            defaults.set(data, forKey: articleStatesKey)
         }
     }
 
@@ -56,7 +84,7 @@ final class FeedStore {
 
         // Upsert feed
         if let idx = feeds.firstIndex(where: { $0.id == feed.id }) {
-            // For existing feeds, preserve title and thumbnailURL; only update on initial subscribe
+            // For existing feeds, preserve title and thumbnailURL
             let existing = feeds[idx]
             let updatedFeed = Feed(title: existing.title, url: url, thumbnailURL: existing.thumbnailURL)
             feeds[idx] = updatedFeed
@@ -65,31 +93,27 @@ final class FeedStore {
             feeds.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         }
 
-        // Build new articles from this single fetch; replace existing ones for this feed
-        let oldByLink = Dictionary(uniqueKeysWithValues: articles
-            .filter { $0.feedID == feed.id }
-            .map { ($0.link, $0) })
-
+        // Build new articles from this fetch; replace existing ones for this feed
         var newArticles: [Article] = []
         newArticles.reserveCapacity(parsed.items.count)
 
         for item in parsed.items {
-            let link = item.link
-            let preserved = oldByLink[link]
+            let articleID = item.link.absoluteString
+            
             let article = Article(
-                feedID: feed.id,
-                feedTitle: feed.title,
-                feedThumbnailURL: feed.thumbnailURL,
-                link: link,
+                feed: feed,
+                link: item.link,
                 title: item.title,
                 author: item.author,
                 contentHTML: item.contentHTML,
                 featuredImageURL: item.featuredImageURL,
                 publishedAt: item.publishedAt ?? .now,
-                isRead: preserved?.isRead ?? false,
-                isStarred: preserved?.isStarred ?? false
+                stateProvider: { [weak self] in
+                    // Capture version to ensure SwiftUI re-evaluates when states change
+                    _ = self?.articleStatesVersion
+                    return self?.articleStates[articleID] ?? ArticleState()
+                }
             )
-            // Ensure minimal data; nothing else to compute here
             newArticles.append(article)
         }
 
@@ -97,7 +121,7 @@ final class FeedStore {
         let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }.prefix(100)
 
         // Remove previous articles for this feed and insert the new batch
-        articles.removeAll { $0.feedID == feed.id }
+        articles.removeAll { $0.feed.id == feed.id }
         articles.append(contentsOf: limitedNewArticles)
         articles.sort { $0.publishedAt > $1.publishedAt }
 
@@ -105,9 +129,9 @@ final class FeedStore {
     }
 
     func refresh(_ feed: Feed) async throws -> Int {
-        let beforeCount = articles.count(where: { $0.feedID == feed.id })
+        let beforeCount = articles.count(where: { $0.feed.id == feed.id })
         _ = try await subscribe(url: feed.url, title: feed.title)
-        let afterCount = articles.count(where: { $0.feedID == feed.id })
+        let afterCount = articles.count(where: { $0.feed.id == feed.id })
         return afterCount - beforeCount
     }
 
@@ -152,34 +176,46 @@ final class FeedStore {
 
     func deleteFeed(_ feed: Feed) {
         feeds.removeAll { $0.id == feed.id }
-        articles.removeAll { $0.feedID == feed.id }
+        articles.removeAll { $0.feed.id == feed.id }
+        // Note: We keep article states even after feed deletion
+        // to preserve read/starred status if feed is re-added
+    }
+    
+    // Clean up article states for articles that no longer exist (optional maintenance)
+    func cleanupArticleStates() {
+        let currentArticleIDs = Set(articles.map { $0.id })
+        let statesToKeep = articleStates.filter { currentArticleIDs.contains($0.key) || $0.value.isStarred }
+        articleStates = statesToKeep
     }
 
     // MARK: - Article Operations
     func setRead(articleID: String, _ isRead: Bool) {
-        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
-            articles[idx].isRead = isRead
-        }
+        // Update state in dictionary (O(1) lookup) - Article objects read from here
+        var state = articleStates[articleID] ?? ArticleState()
+        state.isRead = isRead
+        articleStates[articleID] = state
     }
 
     func toggleRead(articleID: String) {
-        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
-            articles[idx].isRead.toggle()
-        }
+        // Update state in dictionary (O(1) lookup) - Article objects read from here
+        var state = articleStates[articleID] ?? ArticleState()
+        state.isRead.toggle()
+        articleStates[articleID] = state
     }
 
     func toggleStar(articleID: String) {
-        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
-            articles[idx].isStarred.toggle()
-        }
+        // Update state in dictionary (O(1) lookup) - Article objects read from here
+        var state = articleStates[articleID] ?? ArticleState()
+        state.isStarred.toggle()
+        articleStates[articleID] = state
     }
 
     func markAllRead(in articlesList: [Article]) {
-        let ids = Set(articlesList.map { $0.id })
-        for i in articles.indices {
-            if ids.contains(articles[i].id) {
-                articles[i].isRead = true
-            }
+        // Batch update states - Article objects will automatically reflect changes
+        for article in articlesList {
+            var state = articleStates[article.id] ?? ArticleState()
+            state.isRead = true
+            articleStates[article.id] = state
         }
     }
 

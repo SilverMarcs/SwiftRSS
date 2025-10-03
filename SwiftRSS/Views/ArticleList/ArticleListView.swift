@@ -13,7 +13,7 @@ struct ArticleListView: View {
         case .starred:
             list = list.filter { $0.isStarred }
         case .feed(let feed):
-            list = list.filter { $0.feedID == feed.id }
+            list = list.filter { $0.feed.id == feed.id }
         case .today:
             let cal = Calendar.current
             let start = cal.startOfDay(for: .now)

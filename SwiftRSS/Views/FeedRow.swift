@@ -25,7 +25,7 @@ struct FeedRow: View {
                     .imageScale(.small)
             }
         }
-        .badge(store.articles.filter { $0.feedID == feed.id && !$0.isRead }.count)
+        .badge(store.articles.filter { $0.feed.id == feed.id }.count)
     }
 }
  
