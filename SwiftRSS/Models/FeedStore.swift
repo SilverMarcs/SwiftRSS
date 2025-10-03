@@ -3,19 +3,14 @@ import Observation
 
 @Observable
 final class FeedStore {
-    // Persist only feeds and article states (read/starred)
+    // Persist only feeds (article states now managed globally)
     var feeds: [Feed] = [] { didSet { persistFeeds() } }
     var articles: [Article] = [] // Transient, loaded fresh from feeds
-    
-    // Efficient O(1) lookup for article states using Dictionary
-    private var articleStates: [String: ArticleState] = [:] { didSet { persistArticleStates() } }
 
     @ObservationIgnored
     private let defaults = UserDefaults.standard
     @ObservationIgnored
     private let feedsKey = "feeds_v2"
-    @ObservationIgnored
-    private let articleStatesKey = "articleStates_v2"
 
     init() {
         load()
@@ -34,33 +29,12 @@ final class FeedStore {
            let decoded = try? dec.decode([Feed].self, from: data) {
             feeds = decoded
         }
-        
-        // Load article states
-        if let data = defaults.data(forKey: articleStatesKey),
-           let decoded = try? dec.decode([String: ArticleState].self, from: data) {
-            articleStates = decoded
-        }
-        
-        // Clean up old keys if migrating
-        if defaults.data(forKey: "feeds_v1") != nil {
-            defaults.removeObject(forKey: "feeds_v1")
-        }
-        if defaults.data(forKey: "articles_v1") != nil {
-            defaults.removeObject(forKey: "articles_v1")
-        }
     }
 
     private func persistFeeds() {
         let enc = JSONEncoder()
         if let data = try? enc.encode(feeds) {
             defaults.set(data, forKey: feedsKey)
-        }
-    }
-
-    private func persistArticleStates() {
-        let enc = JSONEncoder()
-        if let data = try? enc.encode(articleStates) {
-            defaults.set(data, forKey: articleStatesKey)
         }
     }
 
@@ -89,8 +63,6 @@ final class FeedStore {
         newArticles.reserveCapacity(parsed.items.count)
 
         for item in parsed.items {
-            let articleID = item.link.absoluteString
-            
             let article = Article(
                 feed: feed,
                 link: item.link,
@@ -98,10 +70,7 @@ final class FeedStore {
                 author: item.author,
                 contentHTML: item.contentHTML,
                 featuredImageURL: item.featuredImageURL,
-                publishedAt: item.publishedAt ?? .now,
-                stateProvider: { [weak self] in
-                    self?.articleStates[articleID] ?? ArticleState()
-                }
+                publishedAt: item.publishedAt ?? .now
             )
             newArticles.append(article)
         }
@@ -169,42 +138,23 @@ final class FeedStore {
         // Note: We keep article states even after feed deletion
         // to preserve read/starred status if feed is re-added
     }
-    
-    // Clean up article states for articles that no longer exist (optional maintenance)
-    func cleanupArticleStates() {
-        let currentArticleIDs = Set(articles.map { $0.id })
-        let statesToKeep = articleStates.filter { currentArticleIDs.contains($0.key) || $0.value.isStarred }
-        articleStates = statesToKeep
-    }
 
     // MARK: - Article Operations
     func setRead(articleID: String, _ isRead: Bool) {
-        // Update state in dictionary (O(1) lookup) - Article objects read from here
-        var state = articleStates[articleID] ?? ArticleState()
-        state.isRead = isRead
-        articleStates[articleID] = state
+        ArticleStateManager.shared.setRead(articleID: articleID, isRead)
     }
 
     func toggleRead(articleID: String) {
-        // Update state in dictionary (O(1) lookup) - Article objects read from here
-        var state = articleStates[articleID] ?? ArticleState()
-        state.isRead.toggle()
-        articleStates[articleID] = state
+        ArticleStateManager.shared.toggleRead(articleID: articleID)
     }
 
     func toggleStar(articleID: String) {
-        // Update state in dictionary (O(1) lookup) - Article objects read from here
-        var state = articleStates[articleID] ?? ArticleState()
-        state.isStarred.toggle()
-        articleStates[articleID] = state
+        ArticleStateManager.shared.toggleStar(articleID: articleID)
     }
 
     func markAllRead(in articlesList: [Article]) {
-        // Batch update states - Article objects will automatically reflect changes
         for article in articlesList {
-            var state = articleStates[article.id] ?? ArticleState()
-            state.isRead = true
-            articleStates[article.id] = state
+            ArticleStateManager.shared.setRead(articleID: article.id, true)
         }
     }
 
