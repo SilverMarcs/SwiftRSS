@@ -68,6 +68,7 @@ struct ContentView: View {
                         Image(systemName: "gear")
                     }
                 }
+                .matchedTransitionSource(id: "settings", in: transition)
                 #endif
                 
                 ToolbarSpacer(.flexible, placement: .platformBar)
@@ -93,6 +94,9 @@ struct ContentView: View {
             .sheet(isPresented: $showSettings) {
                 SettingsView()
                     .presentationDetents([.medium])
+                    #if !os(macOS)
+                    .navigationTransition(.zoom(sourceID: "settings", in: transition))
+                    #endif
             }
         }
     }
