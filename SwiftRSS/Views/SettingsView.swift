@@ -17,8 +17,6 @@ struct SettingsView: View {
     @State private var showFileImporter = false
     @State private var importError: String?
     
-    @AppStorage("geminiApiKey") private var geminiApiKey = ""
-    
     var body: some View {
         NavigationStack {
             Form {
@@ -35,11 +33,6 @@ struct SettingsView: View {
                         }
                         .contentShape(.rect)
                     }
-                }
-
-                Section("AI") {
-                    TextField("Gemini API Key", text: $geminiApiKey)
-                        .textContentType(.password)
                 }
                 
                 Section("Debug") {

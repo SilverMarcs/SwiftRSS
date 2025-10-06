@@ -6,21 +6,16 @@
 //
 
 import SwiftUI
+import FoundationModels
 
 struct AISummaryView: View {
     let extractedText: String
-    @AppStorage("geminiApiKey") private var apiKey = ""
     @State private var summary: String = ""
-    @State private var isLoading = false
-    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
-            if isLoading {
+            if summary.isEmpty {
                 ProgressView("Generating summary...")
-            } else if let error = errorMessage {
-                Text("Error: \(error)")
-                    .foregroundStyle(.red)
             } else {
                 ScrollView {
                     Text(LocalizedStringKey(summary))
@@ -33,69 +28,21 @@ struct AISummaryView: View {
             }
         }
         .task {
-            if !apiKey.isEmpty {
-                generateSummary()
-            } else {
-                errorMessage = "API key not set in settings"
-            }
+            generateSummary()
         }
     }
 
     private func generateSummary() {
-        isLoading = true
-        errorMessage = nil
-
-        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
-
-        let body: [String: Any] = [
-            "contents": [
-                [
-                    "parts": [
-                        ["text": "Summarize this article concisely:\n\(extractedText)"]
-                    ]
-                ]
-            ]
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        } catch {
-            errorMessage = "Failed to encode request"
-            isLoading = false
-            return
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isLoading = false
-                if let error = error {
-                    errorMessage = error.localizedDescription
-                    return
+        Task {
+            let session = LanguageModelSession()
+            do {
+                let stream = session.streamResponse(to: "Summarize this article concisely:\n\(extractedText)")
+                for try await response in stream{
+                    summary = response.content
                 }
-                guard let data = data else {
-                    errorMessage = "No data received"
-                    return
-                }
-                do {
-                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let candidates = json["candidates"] as? [[String: Any]],
-                       let firstCandidate = candidates.first,
-                       let content = firstCandidate["content"] as? [String: Any],
-                       let parts = content["parts"] as? [[String: Any]],
-                       let firstPart = parts.first,
-                       let text = firstPart["text"] as? String {
-                        summary = text
-                    } else {
-                        errorMessage = "Failed to parse response"
-                    }
-                } catch {
-                    errorMessage = "Failed to decode response"
-                }
+            } catch {
+                print(error.localizedDescription)
             }
-        }.resume()
+        }
     }
 }
