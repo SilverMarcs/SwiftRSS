@@ -19,8 +19,8 @@ struct ArticleRow: View {
             // Image at the top
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: 400)
-                    .aspectRatio(contentMode: .fill)
                     .frame(height: 170)
+                    .aspectRatio(contentMode: .fill)
                     .cornerRadius(8)
             }
             
