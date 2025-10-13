@@ -30,6 +30,9 @@ struct ArticleReaderView: View {
             } imageRenderer: { url in
                 SMVImage(url: url.absoluteString, targetSize: 400)
             }
+            .environment(\.openURL, OpenURLAction { url in
+                return .systemAction(prefersInApp: true)
+            })
             .onAppear { store.setRead(articleID: articleID, true) }
             .toolbar {
                 ToolbarItemGroup(placement: .platformBar) {
