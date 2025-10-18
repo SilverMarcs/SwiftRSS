@@ -45,6 +45,7 @@ struct ArticleReaderView: View {
                         store.toggleStar(articleID: articleID)
                     } label: {
                         Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
+//                            .foregroundStyle(article.isStarred == .primary : .orange)
                     }
                 }
                 

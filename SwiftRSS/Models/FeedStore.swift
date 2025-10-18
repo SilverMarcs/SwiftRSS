@@ -3,42 +3,44 @@ import Observation
 
 @Observable
 final class FeedStore {
-    // Persist only feeds (article states now managed globally)
-    var feeds: [Feed] = [] { didSet { persistFeeds() } }
-    var articles: [Article] = [] // Transient, loaded fresh from feeds
+    var feeds: [Feed] = [] { didSet { saveToDisk() } }
+    var articles: [Article] = [] { didSet { saveToDisk() } }
 
     @ObservationIgnored
     private let defaults = UserDefaults.standard
     @ObservationIgnored
-    private let feedsKey = "feeds_v2"
+    private let feedsKey = "feeds_v3"
+    @ObservationIgnored
+    private let articlesKey = "articles_v3"
 
     init() {
-        load()
-        // Load articles fresh from feeds on init
-        Task {
-            try? await refreshAll()
-        }
+        loadFromDisk()
     }
 
-    // MARK: - Persistence
-    private func load() {
+    private func loadFromDisk() {
         let dec = JSONDecoder()
         
-        // Load feeds
         if let data = defaults.data(forKey: feedsKey),
            let decoded = try? dec.decode([Feed].self, from: data) {
             feeds = decoded
         }
+        
+        if let data = defaults.data(forKey: articlesKey),
+           let decoded = try? dec.decode([Article].self, from: data) {
+            articles = decoded
+        }
     }
 
-    private func persistFeeds() {
+    private func saveToDisk() {
         let enc = JSONEncoder()
         if let data = try? enc.encode(feeds) {
             defaults.set(data, forKey: feedsKey)
         }
+        if let data = try? enc.encode(articles) {
+            defaults.set(data, forKey: articlesKey)
+        }
     }
 
-    // MARK: - Feed Operations
     func subscribe(url: URL, title overrideTitle: String? = nil) async throws -> Feed {
         let data = try await FeedService.fetch(url: url)
         let parsed = try FeedService.parseFeed(data: data, url: url)
@@ -47,9 +49,7 @@ final class FeedStore {
         let thumb = parsed.meta.thumbnailURL
         let feed = Feed(title: feedTitle, url: url, thumbnailURL: thumb)
 
-        // Upsert feed
         if let idx = feeds.firstIndex(where: { $0.id == feed.id }) {
-            // For existing feeds, preserve title and thumbnailURL
             let existing = feeds[idx]
             let updatedFeed = Feed(title: existing.title, url: url, thumbnailURL: existing.thumbnailURL)
             feeds[idx] = updatedFeed
@@ -58,11 +58,13 @@ final class FeedStore {
             feeds.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         }
 
-        // Build new articles from this fetch; replace existing ones for this feed
         var newArticles: [Article] = []
         newArticles.reserveCapacity(parsed.items.count)
 
         for item in parsed.items {
+            let articleID = item.link.absoluteString
+            let existingArticle = articles.first { $0.id == articleID }
+            
             let article = Article(
                 feed: feed,
                 link: item.link,
@@ -70,18 +72,18 @@ final class FeedStore {
                 author: item.author,
                 contentHTML: item.contentHTML,
                 featuredImageURL: item.featuredImageURL,
-                publishedAt: item.publishedAt ?? .now
+                publishedAt: item.publishedAt ?? .now,
+                isRead: existingArticle?.isRead ?? false,
+                isStarred: existingArticle?.isStarred ?? false
             )
             newArticles.append(article)
         }
 
-         // Limit to top 100 articles, sorted by publishedAt descending
-         let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }.prefix(100)
- 
-         // Batch update: remove old articles for this feed and rebuild sorted list
-         var updated = articles.filter { $0.feed.id != feed.id }
-         updated.append(contentsOf: limitedNewArticles)
-         articles = updated.sorted { $0.publishedAt > $1.publishedAt }
+        let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }.prefix(100)
+
+        var updated = articles.filter { $0.feed.id != feed.id }
+        updated.append(contentsOf: limitedNewArticles)
+        articles = updated.sorted { $0.publishedAt > $1.publishedAt }
 
         return feed
     }
@@ -135,30 +137,32 @@ final class FeedStore {
     func deleteFeed(_ feed: Feed) {
         feeds.removeAll { $0.id == feed.id }
         articles.removeAll { $0.feed.id == feed.id }
-        // Note: We keep article states even after feed deletion
-        // to preserve read/starred status if feed is re-added
     }
 
-    // MARK: - Article Operations
     func setRead(articleID: String, _ isRead: Bool) {
-        ArticleStateManager.shared.setRead(articleID: articleID, isRead)
+        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
+            articles[idx].isRead = isRead
+        }
     }
 
     func toggleRead(articleID: String) {
-        ArticleStateManager.shared.toggleRead(articleID: articleID)
+        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
+            articles[idx].isRead.toggle()
+        }
     }
 
     func toggleStar(articleID: String) {
-        ArticleStateManager.shared.toggleStar(articleID: articleID)
+        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
+            articles[idx].isStarred.toggle()
+        }
     }
 
     func markAllRead(in articlesList: [Article]) {
         for article in articlesList {
-            ArticleStateManager.shared.setRead(articleID: article.id, true)
+            setRead(articleID: article.id, true)
         }
     }
 
-    // MARK: - OPML
     private func parseOPML(data: Data) throws -> [(title: String, url: URL)] {
         class OPMLParser: NSObject, XMLParserDelegate {
             var feeds: [(String, URL)] = []
@@ -195,7 +199,6 @@ final class FeedStore {
     }
 }
 
-// Convenience helper
 extension Collection {
     func count(where predicate: (Element) -> Bool) -> Int {
         reduce(0) { $0 + (predicate($1) ? 1 : 0) }

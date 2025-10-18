@@ -44,14 +44,14 @@ struct ContentView: View {
             }
             .navigationTitle("Feed")
             .navigationDestination(for: ArticleFilter.self) { filter in
-                ArticleListContainerView(filter: filter)
+                ArticleListView(filter: filter)
             }
             .navigationDestination(for: Article.self) { article in
                 ArticleReaderView(articleID: article.id)
             }
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
-                if store.articles.isEmpty {
+                if store.articles.isEmpty && !store.feeds.isEmpty {
                     let _ = try? await store.refreshAll()
                 }
             }

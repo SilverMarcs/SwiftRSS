@@ -3,6 +3,13 @@ import Observation
 
 struct ArticleListView: View {
     @Environment(FeedStore.self) private var store
+    
+    let filter: ArticleFilter
+    
+    @State private var searchText: String = ""
+    @State private var showingUnreadOnly: Bool = false
+    @State private var showingMarkAllReadAlert: Bool = false
+    
     private var articles: [Article] {
         store.articles.filter { article in
             var matches = true
@@ -34,13 +41,6 @@ struct ArticleListView: View {
             return matches
         }
     }
-    
-    let filter: ArticleFilter
-    let searchText: String
-    let showingUnreadOnly: Bool
-    
-    // Move the state here instead of receiving it as a binding
-    @State private var showingMarkAllReadAlert: Bool = false
 
     var body: some View {
         List {
@@ -53,7 +53,13 @@ struct ArticleListView: View {
         }
         .contentMargins(.top, 4)
         .contentMargins(.horizontal, 5)
+        .navigationTitle(filter.displayName)
+        .toolbarTitleDisplayMode(.inline)
         .navigationSubtitle("\(articles.count) articles")
+        .searchable(text: $searchText, prompt: "Search Articles")
+        .refreshable {
+            await refreshCurrentScope()
+        }
         .toolbar {
             ToolbarItem(placement: .platformBar) {
                 Button {
@@ -73,16 +79,39 @@ struct ArticleListView: View {
                     Text("Are you sure you want to mark all \(articles.count) articles as read?")
                 }
             }
+            
+            if filter != .unread {
+                ToolbarItem {
+                    Button {
+                        showingUnreadOnly.toggle()
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease")
+                            .foregroundStyle(showingUnreadOnly ? .accent : .primary)
+                    }
+                }
+            }
+            
+            #if os(macOS)
+            ToolbarSpacer()
+            #else
+            ToolbarSpacer(.flexible, placement: .bottomBar)
+
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            #endif
         }
     }
-    
-    init(filter: ArticleFilter, searchText: String, showingUnreadOnly: Bool) {
-        self.filter = filter
-        self.searchText = searchText
-        self.showingUnreadOnly = showingUnreadOnly
+
+    private func refreshCurrentScope() async {
+        switch filter {
+        case .feed(let feed):
+            let _ = try? await store.refresh(feed)
+        case .starred:
+            print("Doesnt make sense to refresh")
+        default:
+            let _ = try? await store.refreshAll()
+        }
     }
 
-    // MARK: - Actions
     private func markAllAsRead() {
         store.markAllRead(in: articles)
     }
