@@ -4,29 +4,35 @@ import Observation
 struct ArticleListView: View {
     @Environment(FeedStore.self) private var store
     private var articles: [Article] {
-        var list = store.articles
-        switch filter {
-        case .all:
-            break
-        case .unread:
-            list = list.filter { !$0.isRead }
-        case .starred:
-            list = list.filter { $0.isStarred }
-        case .feed(let feed):
-            list = list.filter { $0.feed.id == feed.id }
-        case .today:
-            let cal = Calendar.current
-            let start = cal.startOfDay(for: .now)
-            let end = cal.date(byAdding: .day, value: 1, to: start)!
-            list = list.filter { $0.publishedAt >= start && $0.publishedAt < end }
+        store.articles.filter { article in
+            var matches = true
+            
+            switch filter {
+            case .all:
+                break
+            case .unread:
+                matches = !article.isRead
+            case .starred:
+                matches = article.isStarred
+            case .feed(let feed):
+                matches = article.feed.id == feed.id
+            case .today:
+                let cal = Calendar.current
+                let start = cal.startOfDay(for: .now)
+                let end = cal.date(byAdding: .day, value: 1, to: start)!
+                matches = article.publishedAt >= start && article.publishedAt < end
+            }
+            
+            if matches && showingUnreadOnly {
+                matches = !article.isRead
+            }
+            
+            if matches && !searchText.isEmpty {
+                matches = article.title.localizedStandardContains(searchText)
+            }
+            
+            return matches
         }
-        if showingUnreadOnly {
-            list = list.filter { !$0.isRead }
-        }
-        if !searchText.isEmpty {
-            list = list.filter { $0.title.localizedStandardContains(searchText) }
-        }
-        return list.sorted { $0.publishedAt > $1.publishedAt }
     }
     
     let filter: ArticleFilter

@@ -51,9 +51,8 @@ struct ContentView: View {
             }
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
-                if !initialFetchDone {
+                if store.articles.isEmpty {
                     let _ = try? await store.refreshAll()
-                    initialFetchDone = true
                 }
             }
             .refreshable {

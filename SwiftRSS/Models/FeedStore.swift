@@ -75,13 +75,13 @@ final class FeedStore {
             newArticles.append(article)
         }
 
-        // Limit to top 100 articles, sorted by publishedAt descending
-        let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }.prefix(100)
-
-        // Remove previous articles for this feed and insert the new batch
-        articles.removeAll { $0.feed.id == feed.id }
-        articles.append(contentsOf: limitedNewArticles)
-        articles.sort { $0.publishedAt > $1.publishedAt }
+         // Limit to top 100 articles, sorted by publishedAt descending
+         let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }.prefix(100)
+ 
+         // Batch update: remove old articles for this feed and rebuild sorted list
+         var updated = articles.filter { $0.feed.id != feed.id }
+         updated.append(contentsOf: limitedNewArticles)
+         articles = updated.sorted { $0.publishedAt > $1.publishedAt }
 
         return feed
     }
