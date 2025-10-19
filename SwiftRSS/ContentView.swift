@@ -52,11 +52,11 @@ struct ContentView: View {
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
                 if store.articles.isEmpty && !store.feeds.isEmpty {
-                    let _ = try? await store.refreshAll()
+                    await store.refreshAll()
                 }
             }
             .refreshable {
-                let _ = try? await store.refreshAll()
+                await store.refreshAll()
             }
             .toolbar {
                 #if !os(macOS)
