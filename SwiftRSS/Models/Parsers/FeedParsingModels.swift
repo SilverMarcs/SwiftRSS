@@ -7,7 +7,6 @@
 
 import Foundation
 
-// MARK: - Core Types (unchanged)
 struct FeedItem {
     var title: String
     var link: URL
