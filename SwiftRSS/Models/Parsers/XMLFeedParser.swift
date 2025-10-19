@@ -1,293 +1,214 @@
 import Foundation
-import Fuzi
 
-final class XMLFeedParser {
+final class XMLFeedParser: NSObject, XMLParserDelegate {
     private let data: Data
     private let baseURL: URL
+    private let maxItems: Int = 50
+
+    // State
+    private var stack: [String] = []
+    private var currentText: String = ""
+
+    // RSS
+    private var rssMeta = FeedMeta()
+    private var rssItems: [FeedItem] = []
+    private var currentItem: FeedItem?
+
+    // Atom
+    private var atomMeta = FeedMeta()
+    private var atomItems: [FeedItem] = []
+    private var atomCurrent: FeedItem?
     
-    // 🚀 Cache regex patterns (created once, reused for all items)
-    private static let imageRegex = try! NSRegularExpression(
-        pattern: #"<img[^>]+src=["\']([^"\']+)["\']"#,
-        options: .caseInsensitive
-    )
-    
-    private static let featuredImageRegex = try! NSRegularExpression(
-        pattern: #"<div[^>]*class=["\'][^"\']*feat-image[^"\']*["\'][^>]*>.*?<img[^>]+src=["\']([^"\']+)["\']"#,
-        options: [.caseInsensitive, .dotMatchesLineSeparators]
-    )
-    
+    // Cached regex for efficiency
+    private lazy var imgRegex: NSRegularExpression? = {
+        try? NSRegularExpression(pattern: #"<img[^>]+src=["\']([^"\']+)["\']"#, options: .caseInsensitive)
+    }()
+
     init(data: Data, baseURL: URL) {
         self.data = data
         self.baseURL = baseURL
     }
-    
+
     func parseRSS2() throws -> (FeedMeta, [FeedItem]) {
-        let doc = try XMLDocument(data: data)
-        registerRSSNamespaces(doc)
+        let parser = XMLParser(data: data)
+        parser.delegate = self
+        parser.parse()
         
-        // 🚀 Find channel once, then traverse children directly
-        guard let channel = doc.firstChild(xpath: "//channel") else {
-            return (FeedMeta(), [])
+        if rssMeta.thumbnailURL == nil {
+            rssMeta.thumbnailURL = getFaviconURL()
         }
         
-        let meta = extractRSSMeta(from: channel)
-        let items = parseRSSItemsIteratively(from: channel)
-        
-        return (meta, items)
+        return (rssMeta, rssItems)
     }
-    
+
     func parseAtom() throws -> (FeedMeta, [FeedItem]) {
-        let doc = try XMLDocument(data: data)
-        doc.definePrefix("atom", forNamespace: "http://www.w3.org/2005/Atom")
+        let parser = XMLParser(data: data)
+        parser.delegate = self
+        parser.parse()
         
-        guard let feed = doc.firstChild(xpath: "//feed") else {
-            return (FeedMeta(), [])
+        if atomMeta.thumbnailURL == nil {
+            atomMeta.thumbnailURL = getFaviconURL()
         }
         
-        let meta = extractAtomMeta(from: feed)
-        let items = parseAtomEntriesIteratively(from: feed)
-        
-        return (meta, items)
+        return (atomMeta, atomItems)
     }
-    
-    // MARK: - RSS Parsing
-    
-    private func registerRSSNamespaces(_ doc: XMLDocument) {
-        doc.definePrefix("content", forNamespace: "http://purl.org/rss/1.0/modules/content/")
-        doc.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
-        doc.definePrefix("media", forNamespace: "http://search.yahoo.com/mrss/")
-    }
-    
-    private func extractRSSMeta(from channel: XMLElement) -> FeedMeta {
-        var meta = FeedMeta()
-        meta.title = channel.firstChild(tag: "title")?.stringValue
-        
-        if let imageURL = channel.firstChild(tag: "image")?.firstChild(tag: "url")?.stringValue {
-            meta.thumbnailURL = makeURL(from: imageURL)
+
+    func parser(_ parser: XMLParser, didStartElement name: String, namespaceURI: String?, qualifiedName qName: String?, attributes attr: [String : String] = [:]) {
+        let lowerName = name.lowercased()
+        stack.append(lowerName)
+        currentText = ""
+
+        // Atom <link href="">
+        if lowerName == "link" && stack.count >= 2 && stack[stack.count - 2] == "entry",
+           let href = attr["href"], let url = URL(string: href, relativeTo: baseURL) {
+            atomCurrent?.link = url.absoluteURL
         }
-        meta.thumbnailURL = meta.thumbnailURL ?? getFaviconURL()
-        
-        return meta
+
+        // RSS enclosure for media (like featured images)
+        if lowerName == "enclosure" && stack.count >= 2 && stack[stack.count - 2] == "item",
+           let urlString = attr["url"],
+           let type = attr["type"],
+           type.hasPrefix("image/"),
+           let url = URL(string: urlString, relativeTo: baseURL) {
+            currentItem?.featuredImageURL = url.absoluteURL
+        }
+
+        if lowerName == "item" && currentItem == nil {
+            currentItem = FeedItem(title: "", link: baseURL, contentHTML: nil, author: nil, publishedAt: nil, featuredImageURL: nil)
+        }
+        if lowerName == "entry" && atomCurrent == nil {
+            atomCurrent = FeedItem(title: "", link: baseURL, contentHTML: nil, author: nil, publishedAt: nil, featuredImageURL: nil)
+        }
     }
-    
-    // 🚀 Iterate through siblings instead of running XPath query
-    private func parseRSSItemsIteratively(from channel: XMLElement) -> [FeedItem] {
-        var items: [FeedItem] = []
-        items.reserveCapacity(20) // typical RSS feed size
-        
-        var node: XMLElement? = channel.firstChild(tag: "item")
-        while let itemNode = node {
-            if let item = parseRSSItem(itemNode) {
-                items.append(item)
+
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        currentText += string
+    }
+
+    func parser(_ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName qName: String?) {
+        let lowerName = name.lowercased()
+        let stackCount = stack.count
+        defer { _ = stack.popLast() }
+
+        let text = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // RSS channel metadata
+        if stackCount >= 3 && stack[0] == "rss" && stack[1] == "channel" {
+            if stack[2] == "title" && stackCount == 3 {
+                rssMeta.title = text
+            } else if stackCount == 4 && stack[2] == "image" && stack[3] == "url" {
+                rssMeta.thumbnailURL = URL(string: text, relativeTo: baseURL)?.absoluteURL
             }
-            // Traverse to next <item> sibling
-            node = itemNode.nextSibling
-            while node != nil && node?.tag != "item" {
-                node = node?.nextSibling
-            }
         }
-        
-        return items
-    }
-    
-    private func parseRSSItem(_ element: XMLElement) -> FeedItem? {
-        guard let title = element.firstChild(tag: "title")?.stringValue else {
-            return nil
-        }
-        
-        // 🚀 Single pass through all children - batch extraction
-        var linkStr: String?
-        var contentHTML: String?
-        var description: String?
-        var author: String?
-        var pubDateStr: String?
-        var enclosureURL: String?
-        var enclosureType: String?
-        var mediaURL: String?
-        
-        for child in element.children {
-            let tag = child.tag ?? ""
-            let ns = child.namespace
-            
-            switch tag {
-            case "link": linkStr = child.stringValue
-            case "description": description = child.stringValue
-            case "author": author = child.stringValue
-            case "pubDate": pubDateStr = child.stringValue
-            case "enclosure":
-                enclosureURL = child["url"]
-                enclosureType = child["type"]
-            case "encoded" where ns == "content":
-                contentHTML = child.stringValue
-            case "creator" where ns == "dc":
-                author = author ?? child.stringValue
-            case "content" where ns == "media", "thumbnail" where ns == "media":
-                mediaURL = mediaURL ?? child["url"]
-            default: break
+
+        // RSS item
+        if stackCount >= 2 && stack[stackCount - 2] == "item" {
+            switch lowerName {
+            case "title":
+                currentItem?.title = text
+            case "link":
+                currentItem?.link = URL(string: text, relativeTo: baseURL) ??  URL(string: text)!
+            case "description":
+                if currentItem?.featuredImageURL == nil {
+                    currentItem?.featuredImageURL = extractImageFromHTML(text)
+                }
+            case "content:encoded":
+                currentItem?.contentHTML = text
+                if currentItem?.featuredImageURL == nil {
+                    currentItem?.featuredImageURL = extractImageFromHTML(text)
+                }
+            case "author", "dc:creator":
+                currentItem?.author = text
+            case "pubdate", "published":
+                currentItem?.publishedAt = RFCDate.parse(text)
+            case "media:content", "media:thumbnail":
+                if currentItem?.featuredImageURL == nil {
+                    currentItem?.featuredImageURL = URL(string: text, relativeTo: baseURL)?.absoluteURL
+                }
+            default:
+                break
             }
         }
         
-        let link = linkStr.flatMap { makeURL(from: $0) } ?? baseURL
-        let publishedAt = pubDateStr.flatMap { RFCDate.parse($0) }
-        
-        // 🚀 Fast featured image extraction
-        let featuredImageURL = extractFeaturedImageFast(
-            enclosureURL: enclosureURL,
-            enclosureType: enclosureType,
-            mediaURL: mediaURL,
-            contentHTML: contentHTML,
-            description: description
-        )
-        
-        return FeedItem(
-            title: title,
-            link: link,
-            contentHTML: contentHTML,
-            author: author,
-            publishedAt: publishedAt,
-            featuredImageURL: featuredImageURL
-        )
-    }
-    
-    // MARK: - Atom Parsing
-    
-    private func extractAtomMeta(from feed: XMLElement) -> FeedMeta {
-        var meta = FeedMeta()
-        meta.title = feed.firstChild(tag: "title")?.stringValue
-        
-        if let logoURL = feed.firstChild(tag: "logo")?.stringValue
-                      ?? feed.firstChild(tag: "icon")?.stringValue {
-            meta.thumbnailURL = makeURL(from: logoURL)
-        }
-        meta.thumbnailURL = meta.thumbnailURL ?? getFaviconURL()
-        
-        return meta
-    }
-    
-    private func parseAtomEntriesIteratively(from feed: XMLElement) -> [FeedItem] {
-        var items: [FeedItem] = []
-        items.reserveCapacity(20)
-        
-        var node: XMLElement? = feed.firstChild(tag: "entry")
-        while let entryNode = node {
-            if let item = parseAtomEntry(entryNode) {
-                items.append(item)
+        if lowerName == "item" {
+            if let item = currentItem {
+                rssItems.append(item)
+                // Stop parsing after maxItems
+                if rssItems.count >= maxItems {
+                    parser.abortParsing()
+                }
             }
-            node = entryNode.nextSibling
-            while node != nil && node?.tag != "entry" {
-                node = node?.nextSibling
+            currentItem = nil
+        }
+
+        // Atom feed metadata
+        if stackCount >= 2 && stack[0] == "feed" {
+            if stack[1] == "title" && stackCount == 2 {
+                atomMeta.title = text
+            } else if (stack[1] == "logo" || stack[1] == "icon") && stackCount == 2 {
+                atomMeta.thumbnailURL = URL(string: text, relativeTo: baseURL)?.absoluteURL
+            }
+        }
+
+        // Atom entry
+        if stackCount >= 2 && stack[stackCount - 2] == "entry" {
+            switch lowerName {
+            case "title":
+                atomCurrent?.title = text
+            case "summary":
+                if atomCurrent?.featuredImageURL == nil {
+                    atomCurrent?.featuredImageURL = extractImageFromHTML(text)
+                }
+            case "content":
+                atomCurrent?.contentHTML = text
+                if atomCurrent?.featuredImageURL == nil {
+                    atomCurrent?.featuredImageURL = extractImageFromHTML(text)
+                }
+            case "author":
+                atomCurrent?.author = text
+            case "published":
+                atomCurrent?.publishedAt = RFCDate.parse(text)
+            default:
+                break
             }
         }
         
-        return items
-    }
-    
-    private func parseAtomEntry(_ element: XMLElement) -> FeedItem? {
-        guard let title = element.firstChild(tag: "title")?.stringValue else {
-            return nil
-        }
-        
-        // 🚀 Single pass batch extraction
-        var linkHref: String?
-        var contentHTML: String?
-        var summary: String?
-        var authorName: String?
-        var publishedStr: String?
-        
-        for child in element.children {
-            switch child.tag {
-            case "link": linkHref = linkHref ?? child["href"]
-            case "content": contentHTML = child.stringValue
-            case "summary": summary = child.stringValue
-            case "published", "updated": publishedStr = publishedStr ?? child.stringValue
-            case "author": authorName = child.firstChild(tag: "name")?.stringValue
-            default: break
+        if lowerName == "entry" {
+            if let item = atomCurrent {
+                atomItems.append(item)
+                // Stop parsing after maxItems
+                if atomItems.count >= maxItems {
+                    parser.abortParsing()
+                }
             }
+            atomCurrent = nil
         }
-        
-        let link = linkHref.flatMap { makeURL(from: $0) } ?? baseURL
-        let publishedAt = publishedStr.flatMap { RFCDate.parse($0) }
-        
-        var featuredImageURL: URL?
-        if let html = contentHTML ?? summary {
-            featuredImageURL = extractImageFromHTMLFast(html)
-        }
-        
-        return FeedItem(
-            title: title,
-            link: link,
-            contentHTML: contentHTML,
-            author: authorName,
-            publishedAt: publishedAt,
-            featuredImageURL: featuredImageURL
-        )
+
+        currentText = ""
     }
     
-    // MARK: - Optimized Helper Methods
-    
-    private func extractFeaturedImageFast(enclosureURL: String?,
-                                          enclosureType: String?,
-                                          mediaURL: String?,
-                                          contentHTML: String?,
-                                          description: String?) -> URL? {
-        // Check in order of likelihood and performance
-        if let urlStr = enclosureURL,
-           let type = enclosureType,
-           type.hasPrefix("image/") {
-            return makeURL(from: urlStr)
-        }
+    // Optimized: Extract first image URL from HTML content
+    private func extractImageFromHTML(_ html: String) -> URL? {
+        guard let regex = imgRegex else { return nil }
         
-        if let urlStr = mediaURL {
-            return makeURL(from: urlStr)
-        }
+        let range = NSRange(html.startIndex..., in: html)
+        guard let match = regex.firstMatch(in: html, range: range) else { return nil }
         
-        if let html = contentHTML ?? description {
-            return extractImageFromHTMLFast(html)
-        }
+        let urlRange = match.range(at: 1)
+        guard let swiftRange = Range(urlRange, in: html) else { return nil }
         
-        return nil
+        let urlString = String(html[swiftRange])
+        return URL(string: urlString, relativeTo: baseURL)?.absoluteURL
     }
     
-    // 🚀 Reuses static cached regex
-    private func extractImageFromHTMLFast(_ html: String) -> URL? {
-        let nsRange = NSRange(html.startIndex..., in: html)
-        
-        // Try featured image first (more specific)
-        if let match = Self.featuredImageRegex.firstMatch(in: html, range: nsRange),
-           let range = Range(match.range(at: 1), in: html),
-           let url = makeURL(from: String(html[range])) {
-            return url
-        }
-        
-        // Fall back to any image
-        if let match = Self.imageRegex.firstMatch(in: html, range: nsRange),
-           let range = Range(match.range(at: 1), in: html),
-           let url = makeURL(from: String(html[range])) {
-            return url
-        }
-        
-        return nil
-    }
-    
-    // 🚀 Inline for performance
-    @inline(__always)
-    private func makeURL(from string: String) -> URL? {
-        guard !string.isEmpty else { return nil }
-        return URL(string: string, relativeTo: baseURL)?.absoluteURL
-    }
-    
-    // 🚀 Lazy cached favicon - computed once
-    private lazy var cachedFaviconURL: URL? = {
+    // Optimized: Generate favicon URL as fallback
+    private func getFaviconURL() -> URL? {
         var components = URLComponents()
         components.scheme = baseURL.scheme
         components.host = baseURL.host
         components.port = baseURL.port
+        
         guard let baseHost = components.url else { return nil }
         return URL(string: "/favicon.ico", relativeTo: baseHost)?.absoluteURL
-    }()
-    
-    @inline(__always)
-    private func getFaviconURL() -> URL? {
-        cachedFaviconURL
     }
 }

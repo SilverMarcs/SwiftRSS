@@ -134,14 +134,18 @@ final class FeedStore {
             setRead(articleID: article.id, true)
         }
     }
-    // MARK: - OPML
-    
-    private func parseOPML(data: Data) throws -> [(title: String, url: URL)] {
-        return OPMLParser.parse(data: data)
-    }
+}
 
+extension Collection {
+    func count(where predicate: (Element) -> Bool) -> Int {
+        reduce(0) { $0 + (predicate($1) ? 1 : 0) }
+    }
+}
+
+// MARK: - OPML
+extension FeedStore {
     func importOPML(data: Data) async throws -> [Feed] {
-        let imports = try parseOPML(data: data)
+        let imports = OPMLParser.parse(data: data)
         return try await withThrowingTaskGroup(of: Feed?.self) { group in
             for (title, url) in imports {
                 group.addTask {
@@ -162,11 +166,5 @@ final class FeedStore {
             }
             return imported
         }
-    }
-}
-
-extension Collection {
-    func count(where predicate: (Element) -> Bool) -> Int {
-        reduce(0) { $0 + (predicate($1) ? 1 : 0) }
     }
 }
