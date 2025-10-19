@@ -71,6 +71,7 @@ struct ArticleReaderView: View {
                 if let text = extractedText {
                     AISummaryView(extractedText: text)
                         .presentationDetents([.medium])
+                        .presentationDragIndicator(.visible)
                         #if !os(macOS)
                         .navigationTransition(.zoom(sourceID: "ai-button", in: aiTransition))
                         #endif
