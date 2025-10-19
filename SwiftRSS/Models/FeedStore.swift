@@ -42,8 +42,7 @@ final class FeedStore {
     }
 
     func subscribe(url: URL, title overrideTitle: String? = nil) async throws -> Feed {
-        let data = try await FeedService.fetch(url: url)
-        let parsed = try FeedService.parseFeed(data: data, url: url)
+        let parsed = try await FeedService.fetchAndParse(url: url) 
 
         let feedTitle = parsed.meta.title ?? overrideTitle ?? url.host ?? "Untitled Feed"
         let thumb = parsed.meta.thumbnailURL
