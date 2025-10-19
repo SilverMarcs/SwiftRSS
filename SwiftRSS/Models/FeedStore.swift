@@ -79,7 +79,7 @@ final class FeedStore {
             newArticles.append(article)
         }
 
-        let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }.prefix(100)
+        let limitedNewArticles = newArticles.sorted { $0.publishedAt > $1.publishedAt }
 
         var updated = articles.filter { $0.feed.id != feed.id }
         updated.append(contentsOf: limitedNewArticles)
@@ -88,49 +88,21 @@ final class FeedStore {
         return feed
     }
 
-    func refresh(_ feed: Feed) async throws -> Int {
-        let beforeCount = articles.count(where: { $0.feed.id == feed.id })
-        _ = try await subscribe(url: feed.url, title: feed.title)
-        let afterCount = articles.count(where: { $0.feed.id == feed.id })
-        return afterCount - beforeCount
-    }
-
-    func refreshAll() async throws -> Int {
-        try await withThrowingTaskGroup(of: Int.self) { group in
-            for feed in feeds {
-                group.addTask {
-                    try await self.refresh(feed)
-                }
-            }
-            var total = 0
-            for try await count in group {
-                total += count
-            }
-            return total
+    func refresh(_ feed: Feed) async {
+        do {
+            let _ = try await subscribe(url: feed.url, title: feed.title)
+        } catch {
+            print(error)
         }
     }
 
-    func importOPML(data: Data) async throws -> [Feed] {
-        let imports = try parseOPML(data: data)
-        return try await withThrowingTaskGroup(of: Feed?.self) { group in
-            for (title, url) in imports {
+    func refreshAll() async {
+        await withThrowingTaskGroup(of: Void.self) { group in
+            for feed in feeds {
                 group.addTask {
-                    do {
-                        let f = try await self.subscribe(url: url, title: title)
-                        return f
-                    } catch {
-                        print("Failed to import feed \(title): \(error)")
-                        return nil
-                    }
+                    await self.refresh(feed)
                 }
             }
-            var imported: [Feed] = []
-            for try await feed in group {
-                if let feed = feed {
-                    imported.append(feed)
-                }
-            }
-            return imported
         }
     }
 
@@ -162,40 +134,34 @@ final class FeedStore {
             setRead(articleID: article.id, true)
         }
     }
-
+    // MARK: - OPML
+    
     private func parseOPML(data: Data) throws -> [(title: String, url: URL)] {
-        class OPMLParser: NSObject, XMLParserDelegate {
-            var feeds: [(String, URL)] = []
-            var currentTitle: String?
-            var currentUrl: String?
+        return OPMLParser.parse(data: data)
+    }
 
-            func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-                if elementName == "outline", let type = attributeDict["type"], type == "rss" {
-                    currentTitle = attributeDict["title"] ?? attributeDict["text"]
-                    currentUrl = attributeDict["xmlUrl"]
+    func importOPML(data: Data) async throws -> [Feed] {
+        let imports = try parseOPML(data: data)
+        return try await withThrowingTaskGroup(of: Feed?.self) { group in
+            for (title, url) in imports {
+                group.addTask {
+                    do {
+                        let f = try await self.subscribe(url: url, title: title)
+                        return f
+                    } catch {
+                        print("Failed to import feed \(title): \(error)")
+                        return nil
+                    }
                 }
             }
-
-            func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-                if elementName == "outline",
-                   let title = currentTitle,
-                   let urlString = currentUrl,
-                   let url = URL(string: urlString) {
-                    let secureUrl = url.scheme?.lowercased() == "http"
-                        ? URL(string: urlString.replacingOccurrences(of: "http://", with: "https://")) ?? url
-                        : url
-                    feeds.append((title, secureUrl))
-                    currentTitle = nil
-                    currentUrl = nil
+            var imported: [Feed] = []
+            for try await feed in group {
+                if let feed = feed {
+                    imported.append(feed)
                 }
             }
+            return imported
         }
-
-        let parser = XMLParser(data: data)
-        let opmlParser = OPMLParser()
-        parser.delegate = opmlParser
-        parser.parse()
-        return opmlParser.feeds
     }
 }
 
