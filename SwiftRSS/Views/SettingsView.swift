@@ -13,7 +13,6 @@ import Observation
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(FeedStore.self) private var store
-    @State private var deleteAlertPresented = false
     @State private var showFileImporter = false
     @State private var importError: String?
     
@@ -35,32 +34,8 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section("Debug") {
-                    Button {
-                        deleteAlertPresented = true
-                    } label: {
-                        HStack {
-                            Label {
-                                Text("Clear Image Cache")
-                                
-                            } icon: {
-                                Image(systemName: "trash")
-                            }
-                            
-//                            Spacer()
-//
-//                            Text("{Cache Size}")
-                        }
-                        .contentShape(.rect)
-                    }
-                    .alert("Clear Image Cache", isPresented: $deleteAlertPresented) {
-                        Button("Clear", role: .destructive) {
-                            CachedAsyncImageConfiguration.clearAllCaches()
-                        }
-                        Button("Cancel", role: .cancel) { }
-                    } message: {
-                        Text("This will clear all cached images, freeing up storage space.")
-                    }
+                Section("Images") {
+                    CacheManagerView()
                 }
             }
             .formStyle(.grouped)
