@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Observation
 
 struct Article: Identifiable, Hashable, Codable {
     var id: String { link.absoluteString }
@@ -17,7 +18,14 @@ struct Article: Identifiable, Hashable, Codable {
     var contentHTML: String?
     var featuredImageURL: URL?
     var publishedAt: Date
+}
+
+extension Article {
+    func isRead(in store: FeedStore) -> Bool {
+        store.getArticleState(id).isRead
+    }
     
-    var isRead: Bool = false
-    var isStarred: Bool = false
+    func isStarred(in store: FeedStore) -> Bool {
+        store.getArticleState(id).isStarred
+    }
 }

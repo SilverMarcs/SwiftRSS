@@ -4,14 +4,15 @@ import Observation
 @Observable
 final class FeedStore {
     var feeds: [Feed] = [] { didSet { saveToDisk() } }
-    var articles: [Article] = [] { didSet { saveToDisk() } }
+    var articles: [Article] = []
+    private var articleStates: [String: ArticleState] = [:] { didSet { saveToDisk() } }
 
     @ObservationIgnored
     private let defaults = UserDefaults.standard
     @ObservationIgnored
     private let feedsKey = "feeds_v3"
     @ObservationIgnored
-    private let articlesKey = "articles_v3"
+    private let articleStatesKey = "articleStates_v1"
 
     init() {
         loadFromDisk()
@@ -25,9 +26,9 @@ final class FeedStore {
             feeds = decoded
         }
         
-        if let data = defaults.data(forKey: articlesKey),
-           let decoded = try? dec.decode([Article].self, from: data) {
-            articles = decoded
+        if let data = defaults.data(forKey: articleStatesKey),
+           let decoded = try? dec.decode([String: ArticleState].self, from: data) {
+            articleStates = decoded
         }
     }
 
@@ -36,8 +37,8 @@ final class FeedStore {
         if let data = try? enc.encode(feeds) {
             defaults.set(data, forKey: feedsKey)
         }
-        if let data = try? enc.encode(articles) {
-            defaults.set(data, forKey: articlesKey)
+        if let data = try? enc.encode(articleStates) {
+            defaults.set(data, forKey: articleStatesKey)
         }
     }
 
@@ -61,9 +62,6 @@ final class FeedStore {
         newArticles.reserveCapacity(parsed.items.count)
 
         for item in parsed.items {
-            let articleID = item.link.absoluteString
-            let existingArticle = articles.first { $0.id == articleID }
-            
             let article = Article(
                 feed: feed,
                 link: item.link,
@@ -71,9 +69,7 @@ final class FeedStore {
                 author: item.author,
                 contentHTML: item.contentHTML,
                 featuredImageURL: item.featuredImageURL,
-                publishedAt: item.publishedAt ?? .now,
-                isRead: existingArticle?.isRead ?? false,
-                isStarred: existingArticle?.isStarred ?? false
+                publishedAt: item.publishedAt ?? .now
             )
             newArticles.append(article)
         }
@@ -111,27 +107,31 @@ final class FeedStore {
     }
 
     func setRead(articleID: String, _ isRead: Bool) {
-        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
-            articles[idx].isRead = isRead
-        }
+        var state = articleStates[articleID] ?? ArticleState()
+        state.isRead = isRead
+        articleStates[articleID] = state
     }
 
     func toggleRead(articleID: String) {
-        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
-            articles[idx].isRead.toggle()
-        }
+        var state = articleStates[articleID] ?? ArticleState()
+        state.isRead.toggle()
+        articleStates[articleID] = state
     }
 
     func toggleStar(articleID: String) {
-        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
-            articles[idx].isStarred.toggle()
-        }
+        var state = articleStates[articleID] ?? ArticleState()
+        state.isStarred.toggle()
+        articleStates[articleID] = state
     }
 
     func markAllRead(in articlesList: [Article]) {
         for article in articlesList {
             setRead(articleID: article.id, true)
         }
+    }
+
+    func getArticleState(_ articleID: String) -> ArticleState {
+        articleStates[articleID] ?? ArticleState()
     }
 }
 

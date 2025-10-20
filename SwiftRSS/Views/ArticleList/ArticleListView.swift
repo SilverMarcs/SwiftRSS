@@ -18,9 +18,9 @@ struct ArticleListView: View {
             case .all:
                 break
             case .unread:
-                matches = !article.isRead
+                matches = !article.isRead(in: store)
             case .starred:
-                matches = article.isStarred
+                matches = article.isStarred(in: store)
             case .feed(let feed):
                 matches = article.feed.id == feed.id
             case .today:
@@ -31,7 +31,7 @@ struct ArticleListView: View {
             }
             
             if matches && showingUnreadOnly {
-                matches = !article.isRead
+                matches = !article.isRead(in: store)
             }
             
             if matches && !searchText.isEmpty {
@@ -63,13 +63,13 @@ struct ArticleListView: View {
         .toolbar {
             ToolbarItem(placement: .platformBar) {
                 Button {
-                    if !articles.allSatisfy({ $0.isRead }) {
+                    if !articles.allSatisfy({ $0.isRead(in: store) }) {
                         showingMarkAllReadAlert = true
                     }
                 } label: {
                     Label("Mark all as read", systemImage: "largecircle.fill.circle")
                 }
-                .disabled(articles.allSatisfy({ $0.isRead }))
+                .disabled(articles.allSatisfy({ $0.isRead(in: store) }))
                 .confirmationDialog("Mark All as Read", isPresented: $showingMarkAllReadAlert) {
                     Button("Cancel", role: .cancel) { }
                     Button("Mark All Read", role: .destructive) {

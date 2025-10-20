@@ -28,4 +28,3 @@ struct FeedRow: View {
         .badge(store.articles.filter { $0.feed.id == feed.id }.count)
     }
 }
- 
