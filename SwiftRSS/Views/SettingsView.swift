@@ -67,7 +67,7 @@ struct SettingsView: View {
                                 if url.startAccessingSecurityScopedResource() {
                                     defer { url.stopAccessingSecurityScopedResource() }
                                     let data = try Data(contentsOf: url)
-                                    _ = try await store.importOPML(data: data)
+                                    try await store.importOPML(data: data)
                                 } else {
                                     importError = "Unable to access the selected file"
                                 }

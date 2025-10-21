@@ -81,7 +81,7 @@ struct ArticleRow: View {
     
     var readButton: some View {
         Button {
-            store.toggleRead(articleID: article.id)
+//            store.toggleRead(articleID: article.id)
         } label: {
             Label(article.isRead ? "Mark Unread" : "Mark Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
         }
@@ -89,7 +89,7 @@ struct ArticleRow: View {
     
     var starButton: some View {
         Button {
-            store.toggleStar(articleID: article.id)
+//            store.toggleStar(articleID: article.id)
         } label: {
             Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
         }

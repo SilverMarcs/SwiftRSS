@@ -17,6 +17,7 @@ struct Article: Identifiable, Hashable, Codable {
     var author: String?
     var featuredImageURL: URL?
     var publishedAt: Date
+    
     var isRead: Bool = false
     var isStarred: Bool = false
 }

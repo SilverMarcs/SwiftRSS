@@ -8,11 +8,11 @@
 import Foundation
 
 class OPMLParser: NSObject, XMLParserDelegate {
-    private var feeds: [(String, URL)] = []
+    private var feeds: [Feed] = []
     private var currentTitle: String?
     private var currentUrl: String?
     
-    static func parse(data: Data) -> [(title: String, url: URL)] {
+    static func parse(data: Data) -> [Feed] {
         let opmlParser = OPMLParser()
         let parser = XMLParser(data: data)
         parser.delegate = opmlParser
@@ -37,7 +37,8 @@ class OPMLParser: NSObject, XMLParserDelegate {
             let secureUrl = url.scheme?.lowercased() == "http"
                 ? URL(string: urlString.replacingOccurrences(of: "http://", with: "https://")) ?? url
                 : url
-            feeds.append((title, secureUrl))
+            let feed = Feed(title: title, url: secureUrl)
+            feeds.append(feed)
             currentTitle = nil
             currentUrl = nil
         }

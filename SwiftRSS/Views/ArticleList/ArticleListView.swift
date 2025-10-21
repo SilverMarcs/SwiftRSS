@@ -58,7 +58,7 @@ struct ArticleListView: View {
         .navigationSubtitle("\(articles.count) articles")
         .searchable(text: $searchText, prompt: "Search Articles")
         .refreshable {
-            await refreshCurrentScope()
+            await store.refreshAll()
         }
          .toolbar {
              ToolbarItem(placement: .platformBar) {
@@ -101,18 +101,7 @@ struct ArticleListView: View {
         }
     }
 
-    private func refreshCurrentScope() async {
-        switch filter {
-        case .feed(let feed):
-            await store.refresh(feed)
-        case .starred:
-            print("Doesnt make sense to refresh")
-        default:
-            await store.refreshAll()
-        }
-    }
-
     private func markAllAsRead() {
-        store.markAllRead(in: articles)
+//        store.markAllRead(in: articles)
     }
 }

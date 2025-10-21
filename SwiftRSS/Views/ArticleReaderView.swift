@@ -23,16 +23,18 @@ struct ArticleReaderView: View {
     var body: some View {
         if let article = article {
             ReederSpecificView(url: article.link)
-                .onAppear { store.setRead(articleID: articleID, true) }
+                .onAppear {
+//                    store.setRead(articleID: articleID, true)
+                }
                 .toolbar {
                     ToolbarItemGroup(placement: .platformBar) {
                         Button {
-                            store.toggleRead(articleID: articleID)
+//                            store.toggleRead(articleID: articleID)
                         } label: {
                             Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
                         }
                         Button {
-                            store.toggleStar(articleID: articleID)
+//                            store.toggleStar(articleID: articleID)
                         } label: {
                             Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
                         }
