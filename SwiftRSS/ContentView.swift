@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Observation
+import Reeeed
+import SwiftMediaViewer
 
 struct ContentView: View {
     @Environment(FeedStore.self) private var store
@@ -14,11 +16,12 @@ struct ContentView: View {
     @State var showAddFeed: Bool = false
     @State var showSettings: Bool = false
     @State var initialFetchDone: Bool = false
+    @State var navigationPath = NavigationPath()
     
     @Namespace private var transition
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             List {
                 Section("Smart") {
                     ForEach(ArticleFilter.smartFilters, id: \.self) { filter in
@@ -48,6 +51,9 @@ struct ContentView: View {
             }
             .navigationDestination(for: Article.self) { article in
                 ArticleReaderView(articleID: article.id)
+            }
+            .navigationDestination(for: URL.self) { url in
+                ReederSpecificView(url: url)
             }
             .toolbarTitleDisplayMode(.inlineLarge)
             .task {
@@ -98,6 +104,10 @@ struct ContentView: View {
                     #endif
             }
         }
+        .environment(\.openURL, OpenURLAction { url in
+            navigationPath.append(url)
+            return .handled
+        })
     }
     
     // MARK: - Delete Function
