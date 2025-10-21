@@ -55,6 +55,7 @@ struct AddFeedSheet: View {
         errorText = nil
         do {
             try await store.addFeed(url: url)
+            await store.refreshAll()
             dismiss()
         } catch {
             errorText = "Failed to add feed: \(error.localizedDescription)"

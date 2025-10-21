@@ -10,12 +10,18 @@ struct FeedService {
         try? NSRegularExpression(pattern: #"<img[^>]+src=["\']([^"\']+)["\']"#, options: .caseInsensitive)
     }()
     
-    // MARK: - Main Public API (single method!)
+    // MARK: - Main Public API
     
     static func fetchAndParse(url: URL) async throws -> (meta: FeedMeta, items: [FeedItem]) {
         let data = try await fetch(url: url)
         let parser = FeedService(data: data, baseURL: url)
         return try parser.parse()
+    }
+    
+    static func fetchMeta(url: URL) async throws -> FeedMeta {
+        let data = try await fetch(url: url)
+        let parser = FeedService(data: data, baseURL: url)
+        return try parser.parseMeta()
     }
     
     // MARK: - Private Static Helpers
@@ -45,110 +51,116 @@ struct FeedService {
         self.baseURL = baseURL
     }
     
-    private func parse() throws -> (meta: FeedMeta, items: [FeedItem]) {
-        guard let format = Self.detectFormat(from: data) else { throw FeedError.notFeed }
-        switch format {
-        case .rss2: return try parseRSS2()
-        case .atom: return try parseAtom()
-        }
-    }
-    
-    private func parseRSS2() throws -> (FeedMeta, [FeedItem]) {
+    private func createDocument() throws -> XMLDocument {
         guard let document = try? XMLDocument(data: data) else {
             throw FeedError.notFeed
         }
+        return document
+    }
+    
+    private func parseMeta() throws -> FeedMeta {
+        guard let format = Self.detectFormat(from: data) else { throw FeedError.notFeed }
+        let document = try createDocument()
         
+        return switch format {
+        case .rss2: parseRSSMeta(document: document)
+        case .atom: parseAtomMeta(document: document)
+        }
+    }
+    
+    private func parse() throws -> (meta: FeedMeta, items: [FeedItem]) {
+        guard let format = Self.detectFormat(from: data) else { throw FeedError.notFeed }
+        let document = try createDocument()
+        
+        return switch format {
+        case .rss2: try parseRSS2(document: document)
+        case .atom: try parseAtom(document: document)
+        }
+    }
+    
+    // MARK: - RSS Parsing
+    
+    private func parseRSSMeta(document: XMLDocument) -> FeedMeta {
         var meta = FeedMeta()
-        var items: [FeedItem] = []
-        
-        // Parse feed metadata
         meta.title = document.firstChild(xpath: "/rss/channel/title")?.stringValue
         
         if let imageURL = document.firstChild(xpath: "/rss/channel/image/url")?.stringValue {
             meta.thumbnailURL = URL(string: imageURL, relativeTo: baseURL)?.absoluteURL
         }
         
-        if meta.thumbnailURL == nil {
-            meta.thumbnailURL = getFaviconURL()
-        }
-        
-        // Parse items (limited to maxItems)
+        meta.thumbnailURL = meta.thumbnailURL ?? getFaviconURL()
+        return meta
+    }
+    
+    private func parseRSS2(document: XMLDocument) throws -> (FeedMeta, [FeedItem]) {
+        let meta = parseRSSMeta(document: document)
         let itemNodes = Array(document.xpath("/rss/channel/item").prefix(maxItems))
-        
-        for itemNode in itemNodes {
-            var item = FeedItem(
-                title: "",
-                link: baseURL,
-                contentHTML: nil,
-                author: nil,
-                publishedAt: nil,
-                featuredImageURL: nil
-            )
-            
-            // Title
-            item.title = itemNode.firstChild(tag: "title")?.stringValue ?? ""
-            
-            // Link
-            if let linkString = itemNode.firstChild(tag: "link")?.stringValue,
-               let url = URL(string: linkString, relativeTo: baseURL) {
-                item.link = url.absoluteURL
-            }
-            
-            // Content (prefer content:encoded over description)
-            let contentEncoded = itemNode.firstChild(xpath: "*[local-name()='encoded']")?.stringValue
-            let description = itemNode.firstChild(tag: "description")?.stringValue
-            item.contentHTML = contentEncoded ?? description
-            
-            // Author (try both author and dc:creator)
-            item.author = itemNode.firstChild(tag: "author")?.stringValue ??
-                         itemNode.firstChild(xpath: "*[local-name()='creator']")?.stringValue
-            
-            // Published date
-            if let dateString = itemNode.firstChild(tag: "pubDate")?.stringValue ??
-                               itemNode.firstChild(tag: "published")?.stringValue {
-                item.publishedAt = RFCDate.parse(dateString)
-            }
-            
-            // Featured image - try enclosure first
-            if let enclosure = itemNode.firstChild(tag: "enclosure"),
-               let type = enclosure["type"],
-               type.hasPrefix("image/"),
-               let urlString = enclosure["url"],
-               let url = URL(string: urlString, relativeTo: baseURL) {
-                item.featuredImageURL = url.absoluteURL
-            }
-            
-            // Try media:content or media:thumbnail
-            if item.featuredImageURL == nil {
-                if let mediaURL = itemNode.firstChild(xpath: "*[local-name()='content']")?["url"] ??
-                                 itemNode.firstChild(xpath: "*[local-name()='thumbnail']")?["url"],
-                   let url = URL(string: mediaURL, relativeTo: baseURL) {
-                    item.featuredImageURL = url.absoluteURL
-                }
-            }
-            
-            // Extract from HTML content as fallback
-            if item.featuredImageURL == nil {
-                if let html = contentEncoded ?? description {
-                    item.featuredImageURL = extractImageFromHTML(html)
-                }
-            }
-            
-            items.append(item)
-        }
+        let items = itemNodes.map { parseRSSItem($0) }
         
         return (meta, items)
     }
     
-    private func parseAtom() throws -> (FeedMeta, [FeedItem]) {
-        guard let document = try? XMLDocument(data: data) else {
-            throw FeedError.notFeed
+    private func parseRSSItem(_ itemNode: XMLElement) -> FeedItem {
+        var item = FeedItem(
+            title: itemNode.firstChild(tag: "title")?.stringValue ?? "",
+            link: extractLink(from: itemNode, tag: "link"),
+            contentHTML: nil,
+            author: nil,
+            publishedAt: nil,
+            featuredImageURL: nil
+        )
+        
+        // Content (prefer content:encoded over description)
+        let contentEncoded = itemNode.firstChild(xpath: "*[local-name()='encoded']")?.stringValue
+        let description = itemNode.firstChild(tag: "description")?.stringValue
+        item.contentHTML = contentEncoded ?? description
+        
+        // Author
+        item.author = itemNode.firstChild(tag: "author")?.stringValue ??
+                     itemNode.firstChild(xpath: "*[local-name()='creator']")?.stringValue
+        
+        // Published date
+        if let dateString = itemNode.firstChild(tag: "pubDate")?.stringValue ??
+                           itemNode.firstChild(tag: "published")?.stringValue {
+            item.publishedAt = RFCDate.parse(dateString)
         }
         
-        var meta = FeedMeta()
-        var items: [FeedItem] = []
+        // Featured image - multiple sources
+        item.featuredImageURL = extractRSSImage(from: itemNode, html: item.contentHTML)
         
-        // Parse feed metadata
+        return item
+    }
+    
+    private func extractRSSImage(from itemNode: XMLElement, html: String?) -> URL? {
+        // Try enclosure first
+        if let enclosure = itemNode.firstChild(tag: "enclosure"),
+           let type = enclosure["type"],
+           type.hasPrefix("image/"),
+           let urlString = enclosure["url"],
+           let url = URL(string: urlString, relativeTo: baseURL) {
+            return url.absoluteURL
+        }
+        
+        // Try media:content or media:thumbnail
+        if let mediaURL = itemNode.firstChild(xpath: "*[local-name()='content']")?["url"] ??
+                         itemNode.firstChild(xpath: "*[local-name()='thumbnail']")?["url"],
+           let url = URL(string: mediaURL, relativeTo: baseURL) {
+            return url.absoluteURL
+        }
+        
+        // Extract from HTML content as fallback
+        if let html = html {
+            return extractImageFromHTML(html)
+        }
+        
+        return nil
+    }
+    
+    // MARK: - Atom Parsing
+    
+    private func parseAtomMeta(document: XMLDocument) -> FeedMeta {
+        var meta = FeedMeta()
+        
         meta.title = document.firstChild(xpath: "/feed/title")?.stringValue ??
                     document.firstChild(xpath: "//*[local-name()='feed']/*[local-name()='title']")?.stringValue
         
@@ -164,63 +176,71 @@ struct FeedService {
             meta.thumbnailURL = URL(string: icon, relativeTo: baseURL)?.absoluteURL
         }
         
-        if meta.thumbnailURL == nil {
-            meta.thumbnailURL = getFaviconURL()
-        }
+        meta.thumbnailURL = meta.thumbnailURL ?? getFaviconURL()
+        return meta
+    }
+    
+    private func parseAtom(document: XMLDocument) throws -> (FeedMeta, [FeedItem]) {
+        let meta = parseAtomMeta(document: document)
         
-        // Parse entries (limited to maxItems)
         let entryNodes = document.xpath("/feed/entry")
         let entries = entryNodes.isEmpty ? document.xpath("//*[local-name()='entry']") : entryNodes
+        let items = entries.prefix(maxItems).map { parseAtomEntry($0) }
         
-        for (index, entryNode) in entries.enumerated() {
-            guard index < maxItems else { break }
-            
-            var item = FeedItem(
-                title: "",
-                link: baseURL,
-                contentHTML: nil,
-                author: nil,
-                publishedAt: nil,
-                featuredImageURL: nil
-            )
-            
-            // Title
-            item.title = entryNode.firstChild(tag: "title")?.stringValue ?? ""
-            
-            // Link (Atom uses link element with href attribute)
-            if let linkElement = entryNode.firstChild(tag: "link"),
-               let href = linkElement["href"],
-               let url = URL(string: href, relativeTo: baseURL) {
-                item.link = url.absoluteURL
-            }
-            
-            // Content (prefer content over summary)
-            let content = entryNode.firstChild(tag: "content")?.stringValue
-            let summary = entryNode.firstChild(tag: "summary")?.stringValue
-            item.contentHTML = content ?? summary
-            
-            // Author
-            item.author = entryNode.firstChild(xpath: "author/name")?.stringValue ??
-                         entryNode.firstChild(xpath: "*[local-name()='author']/*[local-name()='name']")?.stringValue
-            
-            // Published date (try published, fall back to updated)
-            if let dateString = entryNode.firstChild(tag: "published")?.stringValue ??
-                               entryNode.firstChild(tag: "updated")?.stringValue {
-                item.publishedAt = RFCDate.parse(dateString)
-            }
-            
-            // Extract image from HTML content
-            if let html = content ?? summary {
-                item.featuredImageURL = extractImageFromHTML(html)
-            }
-            
-            items.append(item)
+        return (meta, Array(items))
+    }
+    
+    private func parseAtomEntry(_ entryNode: XMLElement) -> FeedItem {
+        var item = FeedItem(
+            title: entryNode.firstChild(tag: "title")?.stringValue ?? "",
+            link: extractAtomLink(from: entryNode),
+            contentHTML: nil,
+            author: nil,
+            publishedAt: nil,
+            featuredImageURL: nil
+        )
+        
+        // Content (prefer content over summary)
+        let content = entryNode.firstChild(tag: "content")?.stringValue
+        let summary = entryNode.firstChild(tag: "summary")?.stringValue
+        item.contentHTML = content ?? summary
+        
+        // Author
+        item.author = entryNode.firstChild(xpath: "author/name")?.stringValue ??
+                     entryNode.firstChild(xpath: "*[local-name()='author']/*[local-name()='name']")?.stringValue
+        
+        // Published date
+        if let dateString = entryNode.firstChild(tag: "published")?.stringValue ??
+                           entryNode.firstChild(tag: "updated")?.stringValue {
+            item.publishedAt = RFCDate.parse(dateString)
         }
         
-        return (meta, items)
+        // Extract image from HTML content
+        if let html = item.contentHTML {
+            item.featuredImageURL = extractImageFromHTML(html)
+        }
+        
+        return item
     }
     
     // MARK: - Helper Methods
+    
+    private func extractLink(from node: XMLElement, tag: String) -> URL {
+        if let linkString = node.firstChild(tag: tag)?.stringValue,
+           let url = URL(string: linkString, relativeTo: baseURL) {
+            return url.absoluteURL
+        }
+        return baseURL
+    }
+    
+    private func extractAtomLink(from node: XMLElement) -> URL {
+        if let linkElement = node.firstChild(tag: "link"),
+           let href = linkElement["href"],
+           let url = URL(string: href, relativeTo: baseURL) {
+            return url.absoluteURL
+        }
+        return baseURL
+    }
     
     private func extractImageFromHTML(_ html: String) -> URL? {
         guard let regex = imgRegex else { return nil }

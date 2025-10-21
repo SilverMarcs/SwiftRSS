@@ -8,5 +8,4 @@ struct Feed: Identifiable, Hashable, Codable {
     var title: String
     var url: URL
     var thumbnailURL: URL?
-    var addedAt: Date = .now
 }

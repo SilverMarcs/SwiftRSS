@@ -94,19 +94,16 @@ final class FeedStore {
         articles = allNewArticles.sorted { $0.publishedAt > $1.publishedAt }
     }
     
+    /// Adds a feed without refreshing articles
     func addFeed(url: URL) async throws {
-        let parsed = try await FeedService.fetchAndParse(url: url)
-        let feedTitle = parsed.meta.title ?? url.host ?? "Untitled Feed"
-        let feed = Feed(title: feedTitle, url: url, thumbnailURL: parsed.meta.thumbnailURL)
+        let meta = try await FeedService.fetchMeta(url: url)
+        let feedTitle = meta.title ?? url.host ?? "Untitled Feed"
+        let feed = Feed(title: feedTitle, url: url, thumbnailURL: meta.thumbnailURL)
         
-        // Add to feeds array if not already present
         if !feeds.contains(where: { $0.id == feed.id }) {
             feeds.append(feed)
             feeds.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         }
-        
-        // Refresh all to get articles
-        await refreshAll()
     }
     
     func deleteFeed(_ feed: Feed) {
@@ -118,17 +115,14 @@ final class FeedStore {
 // MARK: - OPML
 extension FeedStore {
     func importOPML(data: Data) async throws {
-        let imports = OPMLParser.parse(data: data)
+        let urls = OPMLParser.parse(data: data)
         
-        // Add all feeds from OPML to the feeds array
-        for feed in imports {
-            if !feeds.contains(where: { $0.id == feed.id }) {
-                feeds.append(feed)
-            }
+        // Add all feeds using the existing addFeed logic
+        for url in urls {
+            try await addFeed(url: url)
         }
-        feeds.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         
-        // Refresh all feeds to fetch their articles
+        // Refresh all feeds once at the end
         await refreshAll()
     }
 }
