@@ -29,12 +29,12 @@ struct ArticleReaderView: View {
                         Button {
                             store.toggleRead(articleID: articleID)
                         } label: {
-                            Label(article.isRead(in: store) ? "Unread" : "Read", systemImage: article.isRead(in: store) ? "largecircle.fill.circle" : "circle")
+                            Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
                         }
                         Button {
                             store.toggleStar(articleID: articleID)
                         } label: {
-                            Label(article.isStarred(in: store) ? "Unstar" : "Star", systemImage: article.isStarred(in: store) ? "star.fill" : "star")
+                            Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
                         }
                     }
                 }

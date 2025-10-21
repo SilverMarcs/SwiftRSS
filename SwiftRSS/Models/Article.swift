@@ -15,17 +15,8 @@ struct Article: Identifiable, Hashable, Codable {
     var link: URL
     var title: String
     var author: String?
-    var contentHTML: String?
     var featuredImageURL: URL?
     var publishedAt: Date
-}
-
-extension Article {
-    func isRead(in store: FeedStore) -> Bool {
-        store.getArticleState(id).isRead
-    }
-    
-    func isStarred(in store: FeedStore) -> Bool {
-        store.getArticleState(id).isStarred
-    }
+    var isRead: Bool = false
+    var isStarred: Bool = false
 }

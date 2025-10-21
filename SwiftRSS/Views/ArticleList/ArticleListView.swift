@@ -18,9 +18,9 @@ struct ArticleListView: View {
             case .all:
                 break
             case .unread:
-                matches = !article.isRead(in: store)
+                matches = !article.isRead
             case .starred:
-                matches = article.isStarred(in: store)
+                matches = article.isStarred
             case .feed(let feed):
                 matches = article.feed.id == feed.id
             case .today:
@@ -31,7 +31,7 @@ struct ArticleListView: View {
             }
             
             if matches && showingUnreadOnly {
-                matches = !article.isRead(in: store)
+                matches = !article.isRead
             }
             
             if matches && !searchText.isEmpty {
@@ -60,16 +60,16 @@ struct ArticleListView: View {
         .refreshable {
             await refreshCurrentScope()
         }
-        .toolbar {
-            ToolbarItem(placement: .platformBar) {
-                Button {
-                    if !articles.allSatisfy({ $0.isRead(in: store) }) {
-                        showingMarkAllReadAlert = true
-                    }
-                } label: {
-                    Label("Mark all as read", systemImage: "largecircle.fill.circle")
-                }
-                .disabled(articles.allSatisfy({ $0.isRead(in: store) }))
+         .toolbar {
+             ToolbarItem(placement: .platformBar) {
+                 Button {
+                     if !articles.allSatisfy({ $0.isRead }) {
+                         showingMarkAllReadAlert = true
+                     }
+                 } label: {
+                     Label("Mark all as read", systemImage: "largecircle.fill.circle")
+                 }
+                 .disabled(articles.allSatisfy({ $0.isRead }))
                 .confirmationDialog("Mark All as Read", isPresented: $showingMarkAllReadAlert) {
                     Button("Cancel", role: .cancel) { }
                     Button("Mark All Read", role: .destructive) {
@@ -104,11 +104,11 @@ struct ArticleListView: View {
     private func refreshCurrentScope() async {
         switch filter {
         case .feed(let feed):
-            let _ = try? await store.refresh(feed)
+            await store.refresh(feed)
         case .starred:
             print("Doesnt make sense to refresh")
         default:
-            let _ = try? await store.refreshAll()
+            await store.refreshAll()
         }
     }
 

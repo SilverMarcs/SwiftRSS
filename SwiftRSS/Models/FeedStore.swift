@@ -4,15 +4,14 @@ import Observation
 @Observable
 final class FeedStore {
     var feeds: [Feed] = [] { didSet { saveToDisk() } }
-    var articles: [Article] = []
-    private var articleStates: [String: ArticleState] = [:] { didSet { saveToDisk() } }
+    var articles: [Article] = [] { didSet { saveToDisk() } }
 
     @ObservationIgnored
     private let defaults = UserDefaults.standard
     @ObservationIgnored
     private let feedsKey = "feeds_v3"
     @ObservationIgnored
-    private let articleStatesKey = "articleStates_v1"
+    private let articlesKey = "articles_v3"
 
     init() {
         loadFromDisk()
@@ -20,15 +19,15 @@ final class FeedStore {
 
     private func loadFromDisk() {
         let dec = JSONDecoder()
-        
+
         if let data = defaults.data(forKey: feedsKey),
            let decoded = try? dec.decode([Feed].self, from: data) {
             feeds = decoded
         }
-        
-        if let data = defaults.data(forKey: articleStatesKey),
-           let decoded = try? dec.decode([String: ArticleState].self, from: data) {
-            articleStates = decoded
+
+        if let data = defaults.data(forKey: articlesKey),
+           let decoded = try? dec.decode([Article].self, from: data) {
+            articles = decoded
         }
     }
 
@@ -37,13 +36,13 @@ final class FeedStore {
         if let data = try? enc.encode(feeds) {
             defaults.set(data, forKey: feedsKey)
         }
-        if let data = try? enc.encode(articleStates) {
-            defaults.set(data, forKey: articleStatesKey)
+        if let data = try? enc.encode(articles) {
+            defaults.set(data, forKey: articlesKey)
         }
     }
 
     func subscribe(url: URL, title overrideTitle: String? = nil) async throws -> Feed {
-        let parsed = try await FeedService.fetchAndParse(url: url) 
+        let parsed = try await FeedService.fetchAndParse(url: url)
 
         let feedTitle = parsed.meta.title ?? overrideTitle ?? url.host ?? "Untitled Feed"
         let thumb = parsed.meta.thumbnailURL
@@ -62,14 +61,18 @@ final class FeedStore {
         newArticles.reserveCapacity(parsed.items.count)
 
         for item in parsed.items {
+            let articleID = item.link.absoluteString
+            let existingArticle = articles.first { $0.id == articleID }
+
             let article = Article(
                 feed: feed,
                 link: item.link,
                 title: item.title,
                 author: item.author,
-                contentHTML: item.contentHTML,
                 featuredImageURL: item.featuredImageURL,
-                publishedAt: item.publishedAt ?? .now
+                publishedAt: item.publishedAt ?? .now,
+                isRead: existingArticle?.isRead ?? false,
+                isStarred: existingArticle?.isStarred ?? false
             )
             newArticles.append(article)
         }
@@ -107,31 +110,27 @@ final class FeedStore {
     }
 
     func setRead(articleID: String, _ isRead: Bool) {
-        var state = articleStates[articleID] ?? ArticleState()
-        state.isRead = isRead
-        articleStates[articleID] = state
+        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
+            articles[idx].isRead = isRead
+        }
     }
 
     func toggleRead(articleID: String) {
-        var state = articleStates[articleID] ?? ArticleState()
-        state.isRead.toggle()
-        articleStates[articleID] = state
+        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
+            articles[idx].isRead.toggle()
+        }
     }
 
     func toggleStar(articleID: String) {
-        var state = articleStates[articleID] ?? ArticleState()
-        state.isStarred.toggle()
-        articleStates[articleID] = state
+        if let idx = articles.firstIndex(where: { $0.id == articleID }) {
+            articles[idx].isStarred.toggle()
+        }
     }
 
     func markAllRead(in articlesList: [Article]) {
         for article in articlesList {
             setRead(articleID: article.id, true)
         }
-    }
-
-    func getArticleState(_ articleID: String) -> ArticleState {
-        articleStates[articleID] ?? ArticleState()
     }
 }
 
@@ -167,3 +166,4 @@ extension FeedStore {
         }
     }
 }
+

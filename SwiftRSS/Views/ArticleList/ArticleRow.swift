@@ -48,7 +48,7 @@ struct ArticleRow: View {
                 
                 Spacer()
                 
-                if article.isStarred(in: store) {
+                if article.isStarred {
                     Image(systemName: "star.fill")
                         .foregroundStyle(.orange)
                         .font(.caption)
@@ -59,7 +59,7 @@ struct ArticleRow: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .opacity(article.isRead(in: store) ? 0.5 : 1)
+        .opacity(article.isRead ? 0.5 : 1)
         .contextMenu {
             readButton
             
@@ -83,7 +83,7 @@ struct ArticleRow: View {
         Button {
             store.toggleRead(articleID: article.id)
         } label: {
-            Label(article.isRead(in: store) ? "Mark Unread" : "Mark Read", systemImage: article.isRead(in: store) ? "largecircle.fill.circle" : "circle")
+            Label(article.isRead ? "Mark Unread" : "Mark Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
         }
     }
     
@@ -91,7 +91,7 @@ struct ArticleRow: View {
         Button {
             store.toggleStar(articleID: article.id)
         } label: {
-            Label(article.isStarred(in: store) ? "Unstar" : "Star", systemImage: "star")
+            Label(article.isStarred ? "Unstar" : "Star", systemImage: "star")
         }
     }
 }
