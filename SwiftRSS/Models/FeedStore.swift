@@ -34,12 +34,12 @@ final class FeedStore {
 
     // MARK: - Subscriptions
     private func fetchArticles(for feed: Feed) async throws -> [Article] {
-        let parsed = try await FeedService.fetchAndParse(url: feed.url)
+        let articles = try await FeedService.fetchArticles(url: feed.url)
         
         var newArticles: [Article] = []
-        newArticles.reserveCapacity(parsed.items.count)
+        newArticles.reserveCapacity(articles.count)
 
-        for item in parsed.items {
+        for item in articles {
             let article = Article(
                 feed: feed,
                 link: item.link,

@@ -12,7 +12,7 @@ struct FeedService {
     
     // MARK: - Main Public API
     
-    static func fetchAndParse(url: URL) async throws -> (meta: FeedMeta, items: [FeedItem]) {
+    static func fetchArticles(url: URL) async throws -> [FeedItem] {
         let data = try await fetch(url: url)
         let parser = FeedService(data: data, baseURL: url)
         return try parser.parse()
@@ -68,7 +68,7 @@ struct FeedService {
         }
     }
     
-    private func parse() throws -> (meta: FeedMeta, items: [FeedItem]) {
+    private func parse() throws -> [FeedItem] {
         guard let format = Self.detectFormat(from: data) else { throw FeedError.notFeed }
         let document = try createDocument()
         
@@ -92,12 +92,11 @@ struct FeedService {
         return meta
     }
     
-    private func parseRSS2(document: XMLDocument) throws -> (FeedMeta, [FeedItem]) {
-        let meta = parseRSSMeta(document: document)
+    private func parseRSS2(document: XMLDocument) throws -> [FeedItem] {
         let itemNodes = Array(document.xpath("/rss/channel/item").prefix(maxItems))
         let items = itemNodes.map { parseRSSItem($0) }
         
-        return (meta, items)
+        return items
     }
     
     private func parseRSSItem(_ itemNode: XMLElement) -> FeedItem {
@@ -180,17 +179,15 @@ struct FeedService {
         return meta
     }
     
-    private func parseAtom(document: XMLDocument) throws -> (FeedMeta, [FeedItem]) {
-        let meta = parseAtomMeta(document: document)
-        
+    private func parseAtom(document: XMLDocument) throws -> [FeedItem] {
         let entryNodes = document.xpath("/feed/entry")
         let entries = entryNodes.isEmpty ? document.xpath("//*[local-name()='entry']") : entryNodes
-        let items = entries.prefix(maxItems).map { parseAtomEntry($0) }
+        let items = entries.prefix(maxItems).map { parseAtomItem($0) }
         
-        return (meta, Array(items))
+        return items
     }
     
-    private func parseAtomEntry(_ entryNode: XMLElement) -> FeedItem {
+    private func parseAtomItem(_ entryNode: XMLElement) -> FeedItem {
         var item = FeedItem(
             title: entryNode.firstChild(tag: "title")?.stringValue ?? "",
             link: extractAtomLink(from: entryNode),
