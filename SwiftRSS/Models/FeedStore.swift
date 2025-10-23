@@ -36,22 +36,12 @@ final class FeedStore {
     private func fetchArticles(for feed: Feed) async throws -> [Article] {
         let parsed = try await FeedService.fetchAndParse(url: feed.url)
         
-        let thumb = parsed.meta.thumbnailURL
-        let updatedFeed = Feed(title: feed.title, url: feed.url, thumbnailURL: thumb)
-
-        if let idx = feeds.firstIndex(where: { $0.id == feed.id }) {
-            feeds[idx] = updatedFeed
-        } else {
-            feeds.append(updatedFeed)
-            feeds.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
-        }
-
         var newArticles: [Article] = []
         newArticles.reserveCapacity(parsed.items.count)
 
         for item in parsed.items {
             let article = Article(
-                feed: updatedFeed,
+                feed: feed,
                 link: item.link,
                 title: item.title,
                 author: item.author,

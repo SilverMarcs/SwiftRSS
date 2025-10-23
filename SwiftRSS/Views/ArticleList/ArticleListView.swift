@@ -60,6 +60,11 @@ struct ArticleListView: View {
         .refreshable {
             await store.refreshAll()
         }
+        .task {
+            if articles.isEmpty {
+                await store.refreshAll()
+            }
+        }
          .toolbar {
              ToolbarItem(placement: .platformBar) {
                  Button {
