@@ -21,7 +21,7 @@ struct ReederSpecificView: View {
         ReeeederView(url: url) { text in
             extractedText = text
         } imageRenderer: { url in
-            SMVImage(url: url.absoluteString, targetSize: 1000)
+            SMVImage(url: url, targetSize: 1000)
         }
         .toolbar {
             ToolbarSpacer(.flexible, placement: .platformBar)
