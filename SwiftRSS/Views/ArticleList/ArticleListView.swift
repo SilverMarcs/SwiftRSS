@@ -107,6 +107,7 @@ struct ArticleListView: View {
     }
 
     private func markAllAsRead() {
-//        store.markAllRead(in: articles)
+        let ids = articles.map { $0.id }
+        store.markAllAsRead(articleIDs: ids)
     }
 }

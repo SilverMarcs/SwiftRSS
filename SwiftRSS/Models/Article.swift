@@ -9,7 +9,7 @@ import Foundation
 import Observation
 
 struct Article: Identifiable, Hashable, Codable {
-    var id: String { link.absoluteString }
+    var id: String { URLNormalizer.normalizedArticleID(from: link) }
 
     var feed: Feed
     var link: URL
