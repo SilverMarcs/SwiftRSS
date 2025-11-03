@@ -12,6 +12,7 @@ import SwiftMediaViewer
 
 struct ContentView: View {
     @Environment(FeedStore.self) private var store
+    @Environment(\.scenePhase) private var scenePhase
 
     @State var showAddFeed: Bool = false
     @State var showSettings: Bool = false
@@ -56,11 +57,6 @@ struct ContentView: View {
                 ReederSpecificView(url: url)
             }
             .toolbarTitleDisplayMode(.inlineLarge)
-            .task {
-                if store.articles.isEmpty && !store.feeds.isEmpty {
-                    await store.refreshAll()
-                }
-            }
             .refreshable {
                 await store.refreshAll()
             }
@@ -102,6 +98,11 @@ struct ContentView: View {
                     #if !os(macOS)
                     .navigationTransition(.zoom(sourceID: "settings", in: transition))
                     #endif
+            }
+        }
+        .task(id: scenePhase) {
+            if scenePhase == .active {
+                await store.refreshAll()
             }
         }
         .environment(\.openURL, OpenURLAction { url in
