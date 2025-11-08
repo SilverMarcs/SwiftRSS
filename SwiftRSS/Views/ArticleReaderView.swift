@@ -24,7 +24,8 @@ struct ArticleReaderView: View {
         if let article = article {
             ReederSpecificView(url: article.link)
                 .onAppear {
-                    store.setStarred(true, for: article.id)
+                    // Mark as read when the article is opened
+                    store.setRead(true, for: article.id)
                 }
                 .toolbar {
                     ToolbarItemGroup(placement: .platformBar) {

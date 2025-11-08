@@ -105,10 +105,10 @@ struct ContentView: View {
                 await store.refreshAll()
             }
         }
-        .environment(\.openURL, OpenURLAction { url in
-            navigationPath.append(url)
-            return .handled
-        })
+//        .environment(\.openURL, OpenURLAction { url in
+//            navigationPath.append(url)
+//            return .handled
+//        })
     }
     
     // MARK: - Delete Function
