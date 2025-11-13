@@ -10,7 +10,7 @@ import Observation
 
 @main
 struct SwiftRSSApp: App {
-    @State private var store = FeedStore()
+    let store = FeedStore()
     
     var body: some Scene {
         WindowGroup {
