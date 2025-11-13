@@ -28,21 +28,19 @@ struct AISummaryView: View {
             }
         }
         .task {
-            generateSummary()
+            await generateSummary()
         }
     }
 
-    private func generateSummary() {
-        Task {
-            let session = LanguageModelSession()
-            do {
-                let stream = session.streamResponse(to: "Summarize this article concisely:\n\(extractedText)")
-                for try await response in stream{
-                    summary = response.content
-                }
-            } catch {
-                print(error.localizedDescription)
+    private func generateSummary() async {
+        let session = LanguageModelSession()
+        do {
+            let stream = session.streamResponse(to: "Summarize this article concisely:\n\(extractedText)")
+            for try await response in stream{
+                summary = response.content
             }
+        } catch {
+            print(error.localizedDescription)
         }
     }
 }
