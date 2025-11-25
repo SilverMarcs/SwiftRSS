@@ -13,6 +13,7 @@ import Observation
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(FeedStore.self) private var store
+    @AppStorage("geminiApiKey") private var geminiApiKey: String = ""
     @State private var showFileImporter = false
     @State private var importError: String?
     
@@ -36,6 +37,12 @@ struct SettingsView: View {
                 
                 Section("Images") {
                     CacheManagerView()
+                }
+                
+                Section("AI Summary") {
+                    SecureField("Gemini API Key", text: $geminiApiKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                 }
             }
             .formStyle(.grouped)
