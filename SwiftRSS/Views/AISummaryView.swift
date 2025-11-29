@@ -27,12 +27,6 @@ struct AISummaryView: View {
                     systemImage: "bolt.trianglebadge.exclamationmark",
                     description: Text(errorMessage)
                 )
-            } else if summary.isEmpty {
-                ContentUnavailableView(
-                    "No summary yet",
-                    systemImage: "text.bubble",
-                    description: Text("Add your OpenAI API key in Settings to enable AI summaries.")
-                )
             } else {
                 ScrollView {
                     Text(LocalizedStringKey(summary))
@@ -151,9 +145,8 @@ struct AISummaryView: View {
                         .joined()
                     
                     if !deltaText.isEmpty {
-                        await MainActor.run { // not streaming
-                            summary.append(deltaText)
-                        }
+                        isLoading = false
+                        summary.append(deltaText)
                     }
                 }
             }
@@ -164,6 +157,5 @@ struct AISummaryView: View {
         if summary.isEmpty, errorMessage == nil {
             errorMessage = "No summary returned. Try again."
         }
-        isLoading = false
     }
 }
