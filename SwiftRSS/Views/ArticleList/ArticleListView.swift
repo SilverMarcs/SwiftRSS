@@ -60,7 +60,7 @@ struct ArticleListView: View {
         .refreshable {
             await store.refreshAll()
         }
-         .toolbar {
+        .toolbar {
              ToolbarItem(placement: .platformBar) {
                  Button {
                      if !articles.allSatisfy({ $0.isRead }) {
@@ -98,6 +98,12 @@ struct ArticleListView: View {
 
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
             #endif
+        }
+        .overlay {
+            if store.isRefreshing {
+                ProgressView()
+                    .controlSize(.large)
+            }
         }
     }
 

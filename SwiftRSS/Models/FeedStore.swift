@@ -5,6 +5,7 @@ import Observation
 final class FeedStore {
     var feeds: [Feed] = [] { didSet { saveToDisk() } }
     var articles: [Article] = []
+    var isRefreshing: Bool = false
 
     // MARK: - Persistence
     @ObservationIgnored
@@ -97,6 +98,9 @@ final class FeedStore {
     }
 
     func refreshAll() async {
+        isRefreshing = true
+        defer { isRefreshing = false }
+
         var allNewArticles: [Article] = []
         
         do {
