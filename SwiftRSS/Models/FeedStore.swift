@@ -16,6 +16,8 @@ final class FeedStore {
     private let readIDsKey = "articleReadIDs_v1"
     @ObservationIgnored
     private let starredIDsKey = "articleStarredIDs_v1"
+    @ObservationIgnored
+    private let lastRefreshKey = "lastRefreshDate_v1"
 
     // Persist only IDs for read/starred state
     @ObservationIgnored
@@ -70,6 +72,15 @@ final class FeedStore {
     private func saveArticleState() {
         defaults.set(Array(readIDs), forKey: readIDsKey)
         defaults.set(Array(starredIDs), forKey: starredIDsKey)
+    }
+
+    // MARK: - Refresh Tracking
+    var lastRefreshDate: Date? {
+        defaults.object(forKey: lastRefreshKey) as? Date
+    }
+
+    private func updateLastRefreshDate(_ date: Date = .now) {
+        defaults.set(date, forKey: lastRefreshKey)
     }
 
     // MARK: - Subscriptions
@@ -127,6 +138,7 @@ final class FeedStore {
         var merged = allNewArticles.sorted { $0.publishedAt > $1.publishedAt }
         applyPersistedState(into: &merged)
         self.articles = merged
+        updateLastRefreshDate()
     }
     
     /// Adds a feed without refreshing articles

@@ -102,6 +102,10 @@ struct ContentView: View {
         }
         .task(id: scenePhase) {
             if scenePhase == .active {
+                let oneHour: TimeInterval = 1 * 60 * 60
+                if let lastRefresh = store.lastRefreshDate, Date().timeIntervalSince(lastRefresh) < oneHour {
+                    return
+                }
                 await store.refreshAll()
             }
         }
