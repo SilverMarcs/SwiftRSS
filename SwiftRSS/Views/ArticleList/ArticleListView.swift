@@ -9,6 +9,7 @@ struct ArticleListView: View {
     @State private var searchText: String = ""
     @State private var showingUnreadOnly: Bool = false
     @State private var showingMarkAllReadAlert: Bool = false
+    @State private var isRefreshableInFlight: Bool = false
     
     private var articles: [Article] {
         store.articles.filter { article in
@@ -58,6 +59,8 @@ struct ArticleListView: View {
         .navigationSubtitle("\(articles.count) articles")
         .searchable(text: $searchText, prompt: "Search Articles")
         .refreshable {
+            isRefreshableInFlight = true
+            defer { isRefreshableInFlight = false }
             await store.refreshAll()
         }
         .toolbar {
@@ -100,7 +103,7 @@ struct ArticleListView: View {
             #endif
         }
         .overlay {
-            if store.isRefreshing {
+            if store.isRefreshing && !isRefreshableInFlight {
                 ProgressView()
                     .controlSize(.large)
             }
