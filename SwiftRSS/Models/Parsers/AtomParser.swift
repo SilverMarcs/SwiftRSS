@@ -12,13 +12,13 @@ struct AtomParser: FeedParser {
     let baseURL: URL
     private let maxItems: Int = 50
     
-    func parseItems(from document: XMLDocument) throws -> [FeedItem] {
+    func parseItems(from document: Fuzi.XMLDocument) throws -> [FeedItem] {
         let entryNodes = document.xpath("/feed/entry")
         let entries = entryNodes.isEmpty ? document.xpath("//*[local-name()='entry']") : entryNodes
         return entries.prefix(maxItems).map { parseItem($0) }
     }
     
-    func parseMeta(from document: XMLDocument) -> FeedMeta {
+    func parseMeta(from document: Fuzi.XMLDocument) -> FeedMeta {
         var meta = FeedMeta()
         
         meta.title = document.firstChild(xpath: "/feed/title")?.stringValue ??
@@ -40,7 +40,7 @@ struct AtomParser: FeedParser {
         return meta
     }
     
-    private func parseItem(_ entryNode: XMLElement) -> FeedItem {
+    private func parseItem(_ entryNode: Fuzi.XMLElement) -> FeedItem {
         var item = FeedItem(
             title: entryNode.firstChild(tag: "title")?.stringValue ?? "",
             link: extractLink(from: entryNode),
@@ -73,7 +73,7 @@ struct AtomParser: FeedParser {
         return item
     }
     
-    private func extractLink(from node: XMLElement) -> URL {
+    private func extractLink(from node: Fuzi.XMLElement) -> URL {
         if let linkElement = node.firstChild(tag: "link"),
            let href = linkElement["href"],
            let url = URL(string: href, relativeTo: baseURL) {

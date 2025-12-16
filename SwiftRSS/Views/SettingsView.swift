@@ -41,7 +41,9 @@ struct SettingsView: View {
                 
                 Section("AI Summary") {
                     SecureField("Gemini API Key", text: $geminiApiKey)
+                    #if !os(macOS)
                         .textInputAutocapitalization(.never)
+                    #endif
                         .autocorrectionDisabled()
                 }
             }

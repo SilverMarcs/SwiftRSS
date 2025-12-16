@@ -15,12 +15,12 @@ struct RSSParser: FeedParser {
         try? NSRegularExpression(pattern: #"<img[^>]+src=["\']([^"\']+)["\']"#, options: .caseInsensitive)
     }()
     
-    func parseItems(from document: XMLDocument) throws -> [FeedItem] {
+    func parseItems(from document: Fuzi.XMLDocument) throws -> [FeedItem] {
         let itemNodes = Array(document.xpath("/rss/channel/item").prefix(maxItems))
         return itemNodes.map { parseItem($0) }
     }
     
-    func parseMeta(from document: XMLDocument) -> FeedMeta {
+    func parseMeta(from document: Fuzi.XMLDocument) -> FeedMeta {
         var meta = FeedMeta()
         meta.title = document.firstChild(xpath: "/rss/channel/title")?.stringValue
         
@@ -32,7 +32,7 @@ struct RSSParser: FeedParser {
         return meta
     }
     
-    private func parseItem(_ itemNode: XMLElement) -> FeedItem {
+    private func parseItem(_ itemNode: Fuzi.XMLElement) -> FeedItem {
         var item = FeedItem(
             title: itemNode.firstChild(tag: "title")?.stringValue ?? "",
             link: extractLink(from: itemNode, tag: "link"),
@@ -63,7 +63,7 @@ struct RSSParser: FeedParser {
         return item
     }
     
-    private func extractImage(from itemNode: XMLElement, html: String?) -> URL? {
+    private func extractImage(from itemNode: Fuzi.XMLElement, html: String?) -> URL? {
         // Try enclosure first
         if let enclosure = itemNode.firstChild(tag: "enclosure"),
            let type = enclosure["type"],
@@ -88,7 +88,7 @@ struct RSSParser: FeedParser {
         return nil
     }
     
-    private func extractLink(from node: XMLElement, tag: String) -> URL {
+    private func extractLink(from node: Fuzi.XMLElement, tag: String) -> URL {
         if let linkString = node.firstChild(tag: tag)?.stringValue,
            let url = URL(string: linkString, relativeTo: baseURL) {
             return url.absoluteURL

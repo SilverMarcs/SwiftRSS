@@ -46,8 +46,8 @@ struct FeedService {
         self.baseURL = baseURL
     }
     
-    private func createDocument() throws -> XMLDocument {
-        guard let document = try? XMLDocument(data: data) else {
+    private func createDocument() throws -> Fuzi.XMLDocument {
+        guard let document = try? Fuzi.XMLDocument(data: data) else {
             throw FeedError.notFeed
         }
         return document
