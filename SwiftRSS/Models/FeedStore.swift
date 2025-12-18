@@ -1,5 +1,4 @@
-import Foundation
-import Observation
+import SwiftUI
 
 @Observable
 final class FeedStore {
@@ -137,7 +136,10 @@ final class FeedStore {
         
         var merged = allNewArticles.sorted { $0.publishedAt > $1.publishedAt }
         applyPersistedState(into: &merged)
-        self.articles = merged
+        try? await Task.sleep(for: .seconds(1.5))
+        withAnimation {
+            self.articles = merged
+        }
         updateLastRefreshDate()
     }
     

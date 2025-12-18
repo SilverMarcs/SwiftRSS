@@ -1,5 +1,4 @@
 import SwiftUI
-import Observation
 
 struct ArticleListView: View {
     @Environment(FeedStore.self) private var store
@@ -86,7 +85,9 @@ struct ArticleListView: View {
             if filter != .unread {
                 ToolbarItem {
                     Button {
-                        showingUnreadOnly.toggle()
+                        withAnimation(.smooth) {
+                            showingUnreadOnly.toggle()
+                        }
                     } label: {
                         Image(systemName: "line.3.horizontal.decrease")
                             .foregroundStyle(showingUnreadOnly ? .accent : .primary)
