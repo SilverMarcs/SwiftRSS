@@ -85,7 +85,7 @@ struct ArticleListView: View {
             if filter != .unread {
                 ToolbarItem {
                     Button {
-                        withAnimation(.smooth) {
+                        withAnimation {
                             showingUnreadOnly.toggle()
                         }
                     } label: {
