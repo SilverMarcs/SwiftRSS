@@ -16,7 +16,7 @@
       "location" : "https://github.com/SilverMarcs/reeeed",
       "state" : {
         "branch" : "main",
-        "revision" : "e71c074afa7b32ec99b2936565c16cf8c8fc3907"
+        "revision" : "5a7bd52e8f17f63120b119a6e9d6b7f8c389d7fc"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/SilverMarcs/SwiftMediaViewer",
       "state" : {
         "branch" : "main",
-        "revision" : "9645f2bed9c1141f7fa9d106adf8c5c8a06867b6"
+        "revision" : "020e6494660cb0b049c2a54c35b681ec463ab51f"
       }
     }
   ],
