@@ -79,7 +79,9 @@ struct ContentView: View {
                         showAddFeed.toggle()
                     } label: {
                         Image(systemName: "plus")
+                            .foregroundStyle(.white)
                     }
+                    .buttonStyle(.glassProminent)
                 }
                 #if !os(macOS)
                 .matchedTransitionSource(id: "add-feed", in: transition)
