@@ -88,7 +88,7 @@ struct AISummaryView: View {
         let userPrompt = "Summarize this article concisely:\n\(extractedText)"
         
         let requestBody = OpenAIChatRequest(
-            model: "gemini-2.5-flash",  // or another supported model
+            model: "models/gemini-3-flash-preview",  // or another supported model
             messages: [
                 .init(role: "system", content: "You are a helpful assistant that creates concise summaries of articles."),
                 .init(role: "user", content: userPrompt)
