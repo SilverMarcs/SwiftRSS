@@ -14,6 +14,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(FeedStore.self) private var store
     @AppStorage("geminiApiKey") private var geminiApiKey: String = ""
+    @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @State private var showFileImporter = false
     @State private var importError: String?
     
@@ -33,6 +34,10 @@ struct SettingsView: View {
                         }
                         .contentShape(.rect)
                     }
+                }
+                
+                Section("Reading") {
+                    Toggle("Open Links in Reader View", isOn: $openLinksInReaderView)
                 }
                 
                 Section("Images") {

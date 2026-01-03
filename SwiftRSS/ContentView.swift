@@ -19,6 +19,8 @@ struct ContentView: View {
     @State var initialFetchDone: Bool = false
     @State var navigationPath = NavigationPath()
     
+    @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
+    
     @Namespace private var transition
 
     var body: some View {
@@ -111,10 +113,13 @@ struct ContentView: View {
                 await store.refreshAll()
             }
         }
-//        .environment(\.openURL, OpenURLAction { url in
-//            navigationPath.append(url)
-//            return .handled
-//        })
+        .environment(\.openURL, OpenURLAction { url in
+            if openLinksInReaderView {
+                navigationPath.append(url)
+                return .handled
+            }
+            return .systemAction(prefersInApp: true)
+        })
     }
     
     // MARK: - Delete Function
