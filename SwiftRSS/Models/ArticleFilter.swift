@@ -6,58 +6,62 @@
 //
 
 import SwiftUI
+import SwiftData
 
-enum ArticleFilter: Hashable {
+enum ArticleFilter: Equatable, Hashable {
     case all
     case unread
     case starred
     case feed(Feed)
     case today
-    
+
+    static func == (lhs: ArticleFilter, rhs: ArticleFilter) -> Bool {
+        switch (lhs, rhs) {
+        case (.all, .all), (.unread, .unread), (.starred, .starred), (.today, .today): true
+        case (.feed(let a), .feed(let b)): a.persistentModelID == b.persistentModelID
+        default: false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .all: hasher.combine(0)
+        case .unread: hasher.combine(1)
+        case .starred: hasher.combine(2)
+        case .today: hasher.combine(3)
+        case .feed(let feed): hasher.combine(feed.persistentModelID)
+        }
+    }
+
     var displayName: String {
         switch self {
-        case .all:
-            "All Articles"
-        case .unread:
-            "Unread"
-        case .starred:
-            "Starred"
-        case .feed(let feed):
-            feed.title
-        case .today:
-            "Today"
+        case .all: "All Articles"
+        case .unread: "Unread"
+        case .starred: "Starred"
+        case .feed(let feed): feed.title
+        case .today: "Today"
         }
     }
-    
+
     var icon: String {
         switch self {
-        case .all:
-            "tray.fill"
-        case .unread:
-            "largecircle.fill.circle"
-        case .starred:
-            "star.fill"
-        case .feed:
-            "dot.radiowaves.left.and.right"
-        case .today:
-            "sun.max.fill"
+        case .all: "tray.fill"
+        case .unread: "largecircle.fill.circle"
+        case .starred: "star.fill"
+        case .feed: "dot.radiowaves.left.and.right"
+        case .today: "sun.max.fill"
         }
     }
-    
+
     var color: Color {
         switch self {
-        case .all:
-            .blue
-        case .unread:
-            .green
-        case .starred:
-            .orange
-        case .feed:
-            .gray
-        case .today:
-            .yellow
+        case .all: .blue
+        case .unread: .green
+        case .starred: .orange
+        case .feed: .gray
+        case .today: .yellow
         }
     }
-    
+
     static let smartFilters: [ArticleFilter] = [.today, .all, .unread, .starred]
 }

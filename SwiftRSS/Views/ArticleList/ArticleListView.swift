@@ -1,19 +1,30 @@
+//
+//  ArticleListView.swift
+//  SwiftRSS
+//
+//  Created by Zabir Raihan on 06/09/2025.
+//
+
 import SwiftUI
+import SwiftData
 
 struct ArticleListView: View {
     @Environment(FeedStore.self) private var store
-    
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \Article.publishedAt, order: .reverse) private var allArticles: [Article]
+
     let filter: ArticleFilter
-    
-    @State private var searchText: String = ""
-    @State private var showingUnreadOnly: Bool = false
-    @State private var showingMarkAllReadAlert: Bool = false
-    @State private var isRefreshableInFlight: Bool = false
-    
+
+    @State private var searchText = ""
+    @State private var showingUnreadOnly = false
+    @State private var showingMarkAllReadAlert = false
+    @State private var isRefreshableInFlight = false
+
     private var articles: [Article] {
-        store.articles.filter { article in
+        allArticles.filter { article in
             var matches = true
-            
+
             switch filter {
             case .all:
                 break
@@ -22,22 +33,22 @@ struct ArticleListView: View {
             case .starred:
                 matches = article.isStarred
             case .feed(let feed):
-                matches = article.feed.id == feed.id
+                matches = article.feed?.url == feed.url
             case .today:
                 let cal = Calendar.current
                 let start = cal.startOfDay(for: .now)
                 let end = cal.date(byAdding: .day, value: 1, to: start)!
                 matches = article.publishedAt >= start && article.publishedAt < end
             }
-            
+
             if matches && showingUnreadOnly {
                 matches = !article.isRead
             }
-            
+
             if matches && !searchText.isEmpty {
                 matches = article.title.localizedStandardContains(searchText)
             }
-            
+
             return matches
         }
     }
@@ -63,25 +74,25 @@ struct ArticleListView: View {
             await store.refreshAll()
         }
         .toolbar {
-             ToolbarItem(placement: .platformBar) {
-                 Button {
-                     if !articles.allSatisfy({ $0.isRead }) {
-                         showingMarkAllReadAlert = true
-                     }
-                 } label: {
-                     Label("Mark all as read", systemImage: "largecircle.fill.circle")
-                 }
-                 .disabled(articles.allSatisfy({ $0.isRead }))
+            ToolbarItem(placement: .platformBar) {
+                Button {
+                    if !articles.allSatisfy(\.isRead) {
+                        showingMarkAllReadAlert = true
+                    }
+                } label: {
+                    Label("Mark all as read", systemImage: "largecircle.fill.circle")
+                }
+                .disabled(articles.allSatisfy(\.isRead))
                 .confirmationDialog("Mark All as Read", isPresented: $showingMarkAllReadAlert) {
                     Button("Cancel", role: .cancel) { }
                     Button("Mark All Read", role: .destructive) {
-                        markAllAsRead()
+                        for article in articles { article.isRead = true }
                     }
                 } message: {
                     Text("Are you sure you want to mark all \(articles.count) articles as read?")
                 }
             }
-            
+
             if filter != .unread {
                 ToolbarItem {
                     Button {
@@ -94,12 +105,11 @@ struct ArticleListView: View {
                     }
                 }
             }
-            
+
             #if os(macOS)
             ToolbarSpacer()
             #else
             ToolbarSpacer(.flexible, placement: .bottomBar)
-
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
             #endif
         }
@@ -109,10 +119,5 @@ struct ArticleListView: View {
                     .controlSize(.large)
             }
         }
-    }
-
-    private func markAllAsRead() {
-        let ids = articles.map { $0.id }
-        store.markAllAsRead(articleIDs: ids)
     }
 }

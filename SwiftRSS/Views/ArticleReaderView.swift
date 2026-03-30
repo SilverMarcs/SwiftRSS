@@ -6,35 +6,29 @@
 //
 
 import SwiftUI
-import Reeeed
+import SwiftData
 import SwiftMediaViewer
-import Observation
 
 struct ArticleReaderView: View {
-    var articleID: String
-    @Environment(FeedStore.self) private var store
-    
-    private var article: Article? {
-        store.articles.first { $0.id == articleID }
-    }
-    
-    @Namespace private var aiTransition
-    
+    @Environment(\.modelContext) private var modelContext
+
+    let article: Article
+
     var body: some View {
-        if let article = article {
-            ReederSpecificView(url: article.link)
+        if let link = article.link {
+            ReederSpecificView(url: link)
                 .onAppear {
-                    store.setRead(true, for: article.id)
+                    article.isRead = true
                 }
                 .toolbar {
                     ToolbarItemGroup(placement: .platformBar) {
                         Button {
-                            store.toggleRead(articleID: article.id)
+                            article.isRead.toggle()
                         } label: {
                             Label(article.isRead ? "Unread" : "Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
                         }
                         Button {
-                            store.toggleStarred(articleID: article.id)
+                            article.isStarred.toggle()
                         } label: {
                             Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
                         }

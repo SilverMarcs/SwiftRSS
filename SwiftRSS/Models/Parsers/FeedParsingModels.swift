@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FeedItem {
+struct FeedItem: Sendable {
     var title: String
     var link: URL
     var contentHTML: String?
@@ -16,7 +16,7 @@ struct FeedItem {
     var featuredImageURL: URL?
 }
 
-struct FeedMeta {
+struct FeedMeta: Sendable {
     var title: String?
     var thumbnailURL: URL?
 }

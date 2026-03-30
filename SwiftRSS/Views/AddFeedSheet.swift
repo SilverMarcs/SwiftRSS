@@ -1,5 +1,11 @@
+//
+//  AddFeedSheet.swift
+//  SwiftRSS
+//
+//  Created by Zabir Raihan on 06/09/2025.
+//
+
 import SwiftUI
-import Observation
 
 struct AddFeedSheet: View {
     @Environment(FeedStore.self) private var store
@@ -23,7 +29,7 @@ struct AddFeedSheet: View {
                 } footer: {
                     Text("Supports RSS, XML and Atom")
                 }
-                
+
                 if let err = errorText {
                     Text(err)
                         .foregroundStyle(.red)
@@ -36,7 +42,7 @@ struct AddFeedSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button(role: .confirm) {
                         Task { await addFeed() }
@@ -50,7 +56,7 @@ struct AddFeedSheet: View {
     private func addFeed() async {
         isAdding = true
         defer { isAdding = false }
-        
+
         guard let url = URL(string: urlString) else { return }
         errorText = nil
         do {

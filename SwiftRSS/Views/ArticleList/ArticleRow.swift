@@ -6,32 +6,30 @@
 //
 
 import SwiftUI
+import SwiftData
 import SwiftMediaViewer
-import Observation
 
 struct ArticleRow: View {
-    @Environment(FeedStore.self) private var store
-    
+    @Environment(\.modelContext) private var modelContext
+
     let article: Article
 
     var body: some View {
         VStack(alignment: .leading) {
-            // Image at the top
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: 400)
                     .frame(height: 170)
                     .aspectRatio(contentMode: .fill)
                     .cornerRadius(8)
             }
-            
-            // Content below image
+
             Text(article.title)
                 .lineLimit(2)
                 .font(.headline)
-            
+
             HStack {
                 Group {
-                    if let imageURL = article.feed.thumbnailURL {
+                    if let imageURL = article.feed?.thumbnailURL {
                         CachedAsyncImage(url: imageURL, targetSize: 50)
                             .clipShape(.rect(cornerRadius: 4))
                     } else {
@@ -40,20 +38,20 @@ struct ArticleRow: View {
                     }
                 }
                 .frame(width: 15, height: 15)
-                
-                Text(article.feed.title)
+
+                Text(article.feed?.title ?? "")
                     .lineLimit(1)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                
+
                 Spacer()
-                
+
                 if article.isStarred {
                     Image(systemName: "star.fill")
                         .foregroundStyle(.orange)
                         .font(.caption)
                 }
-                
+
                 Text(article.publishedAt.publishedFormat)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -62,34 +60,31 @@ struct ArticleRow: View {
         .opacity(article.isRead ? 0.5 : 1)
         .contextMenu {
             readButton
-            
             starButton
-            
             Divider()
-            
-            ShareLink(item: article.link)
+            if let link = article.link {
+                ShareLink(item: link)
+            }
         }
         .swipeActions(edge: .leading) {
-            readButton
-                .tint(.blue)
+            readButton.tint(.blue)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            starButton
-                .tint(.orange)
+            starButton.tint(.orange)
         }
     }
-    
+
     var readButton: some View {
         Button {
-            store.setRead(!article.isRead, for: article.id)
+            article.isRead.toggle()
         } label: {
             Label(article.isRead ? "Mark Unread" : "Mark Read", systemImage: article.isRead ? "largecircle.fill.circle" : "circle")
         }
     }
-    
+
     var starButton: some View {
         Button {
-            store.setStarred(!article.isStarred, for: article.id)
+            article.isStarred.toggle()
         } label: {
             Label(article.isStarred ? "Unstar" : "Star", systemImage: article.isStarred ? "star.fill" : "star")
         }

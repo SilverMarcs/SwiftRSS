@@ -6,21 +6,24 @@
 //
 
 import SwiftUI
-import Observation
+import SwiftData
 import Reeeed
 import SwiftMediaViewer
 
 struct ContentView: View {
     @Environment(FeedStore.self) private var store
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
 
-    @State var showAddFeed: Bool = false
-    @State var showSettings: Bool = false
-    @State var initialFetchDone: Bool = false
+    @Query(sort: \Feed.title) private var feeds: [Feed]
+
+    @State var showAddFeed = false
+    @State var showSettings = false
     @State var navigationPath = NavigationPath()
-    
+
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
-    
+    @AppStorage("lastRefreshDate") private var lastRefreshDate: Double = 0
+
     @Namespace private var transition
 
     var body: some View {
@@ -40,7 +43,7 @@ struct ContentView: View {
                 }
 
                 Section("Feeds") {
-                    ForEach(store.feeds) { feed in
+                    ForEach(feeds) { feed in
                         NavigationLink(value: ArticleFilter.feed(feed)) {
                             FeedRow(feed: feed)
                         }
@@ -53,7 +56,7 @@ struct ContentView: View {
                 ArticleListView(filter: filter)
             }
             .navigationDestination(for: Article.self) { article in
-                ArticleReaderView(articleID: article.id)
+                ArticleReaderView(article: article)
             }
             .navigationDestination(for: URL.self) { url in
                 ReederSpecificView(url: url)
@@ -61,6 +64,7 @@ struct ContentView: View {
             .toolbarTitleDisplayMode(.inlineLarge)
             .refreshable {
                 await store.refreshAll()
+                lastRefreshDate = Date.now.timeIntervalSince1970
             }
             .toolbar {
                 #if !os(macOS)
@@ -73,9 +77,9 @@ struct ContentView: View {
                 }
                 .matchedTransitionSource(id: "settings", in: transition)
                 #endif
-                
+
                 ToolbarSpacer(.flexible, placement: .platformBar)
-                
+
                 ToolbarItem(placement: .platformBar) {
                     Button {
                         showAddFeed.toggle()
@@ -98,7 +102,6 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
-                    .presentationDetents([.medium])
                     #if !os(macOS)
                     .navigationTransition(.zoom(sourceID: "settings", in: transition))
                     #endif
@@ -106,11 +109,10 @@ struct ContentView: View {
         }
         .task(id: scenePhase) {
             if scenePhase == .active {
-                let oneHour: TimeInterval = 1 * 60 * 60
-                if let lastRefresh = store.lastRefreshDate, Date().timeIntervalSince(lastRefresh) < oneHour {
-                    return
-                }
+                let oneHour: TimeInterval = 3600
+                if Date.now.timeIntervalSince1970 - lastRefreshDate < oneHour { return }
                 await store.refreshAll()
+                lastRefreshDate = Date.now.timeIntervalSince1970
             }
         }
         .environment(\.openURL, OpenURLAction { url in
@@ -121,12 +123,10 @@ struct ContentView: View {
             return .systemAction(prefersInApp: true)
         })
     }
-    
-    // MARK: - Delete Function
+
     private func deleteFeeds(offsets: IndexSet) {
         for index in offsets {
-            let feedToDelete = store.feeds[index]
-            store.deleteFeed(feedToDelete)
+            modelContext.delete(feeds[index])
         }
     }
 }
