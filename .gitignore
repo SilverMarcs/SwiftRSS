@@ -21,3 +21,5 @@ xcuserdata/
 # End of https://www.toptal.com/developers/gitignore/api/xcode
 
 .DS_Store
+
+run.sh

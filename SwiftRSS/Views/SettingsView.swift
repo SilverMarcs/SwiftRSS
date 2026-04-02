@@ -34,6 +34,7 @@ struct SettingsView: View {
     @Environment(FeedStore.self) private var store
     @AppStorage("geminiApiKey") private var geminiApiKey: String = ""
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var exportData: Data?
@@ -90,6 +91,13 @@ struct SettingsView: View {
                         Text("This will permanently delete all articles published more than 7 days ago that are not starred.")
                     }
                 }
+                #if DEBUG
+                Section("Debug") {
+                    Button("Reset Onboarding") {
+                        hasCompletedOnboarding = false
+                    }
+                }
+                #endif
             }
             .formStyle(.grouped)
             .navigationTitle("Settings")

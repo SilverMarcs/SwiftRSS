@@ -23,6 +23,7 @@ struct ContentView: View {
 
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("lastRefreshDate") private var lastRefreshDate: Double = 0
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     @Namespace private var transition
 
@@ -122,6 +123,17 @@ struct ContentView: View {
             }
             return .systemAction(prefersInApp: true)
         })
+        .onAppear {
+            if !feeds.isEmpty {
+                hasCompletedOnboarding = true
+            }
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { !hasCompletedOnboarding },
+            set: { if !$0 { hasCompletedOnboarding = true } }
+        )) {
+            OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+        }
     }
 
     private func deleteFeeds(offsets: IndexSet) {
