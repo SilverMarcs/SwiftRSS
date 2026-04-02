@@ -41,6 +41,7 @@ struct FeedPickerPage: View {
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
+                                .disabled(isAdding)
                             }
                         }
                     }
@@ -57,8 +58,14 @@ struct FeedPickerPage: View {
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add Selected") {
+                    Button {
                         Task { await addSelectedFeeds() }
+                    } label: {
+                        if isAdding {
+                            ProgressView()
+                        } else {
+                            Text("Add Selected")
+                        }
                     }
                     .disabled(selectedFeeds.isEmpty || isAdding)
                 }
