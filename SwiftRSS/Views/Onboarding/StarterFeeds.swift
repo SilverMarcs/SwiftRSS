@@ -23,9 +23,9 @@ struct StarterFeed: Identifiable {
 
 enum StarterFeedCategory: String, CaseIterable {
     case tech = "Tech"
-    case apple = "Apple"
     case dev = "Development"
     case news = "News"
+    case apple = "Apple"
     case travel = "Travel"
     case design = "Design"
     case science = "Science"
@@ -44,9 +44,9 @@ enum StarterFeedCategory: String, CaseIterable {
     var icon: String {
         switch self {
         case .tech: "cpu"
-        case .apple: "apple.logo"
         case .dev: "chevron.left.forwardslash.chevron.right"
         case .news: "newspaper"
+        case .apple: "apple.logo"
         case .design: "paintbrush"
         case .science: "atom"
         case .gaming: "gamecontroller"
@@ -81,18 +81,6 @@ enum StarterFeedCategory: String, CaseIterable {
         StarterFeed(name: "Gizmodo", url: "https://gizmodo.com/feed", category: "Tech"),
         StarterFeed(name: "How-To Geek", url: "https://www.howtogeek.com/feed/", category: "Tech"),
 
-        // MARK: - Apple
-        StarterFeed(name: "9to5Mac", url: "https://9to5mac.com/feed/", category: "Apple"),
-        StarterFeed(name: "Daring Fireball", url: "https://daringfireball.net/feeds/main", category: "Apple"),
-        StarterFeed(name: "MacRumors", url: "https://feeds.macrumors.com/MacRumors-All", category: "Apple"),
-        StarterFeed(name: "Six Colors", url: "https://sixcolors.com/feed/", category: "Apple"),
-        StarterFeed(name: "MacStories", url: "https://www.macstories.net/feed/", category: "Apple"),
-        StarterFeed(name: "AppleInsider", url: "https://appleinsider.com/rss/news/", category: "Apple"),
-        StarterFeed(name: "Cult of Mac", url: "https://www.cultofmac.com/feed/", category: "Apple"),
-        StarterFeed(name: "iMore", url: "https://www.imore.com/feed", category: "Apple"),
-        StarterFeed(name: "512 Pixels", url: "https://512pixels.net/feed/", category: "Apple"),
-        StarterFeed(name: "The Loop", url: "https://www.loopinsight.com/feed/", category: "Apple"),
-
         // MARK: - Development
         StarterFeed(name: "Swift by Sundell", url: "https://swiftbysundell.com/rss", category: "Development"),
         StarterFeed(name: "Hacking with Swift", url: "https://www.hackingwithswift.com/articles/rss", category: "Development"),
@@ -125,11 +113,24 @@ enum StarterFeedCategory: String, CaseIterable {
         StarterFeed(name: "The Economist", url: "https://www.economist.com/international/rss.xml", category: "News"),
         StarterFeed(name: "ABC News", url: "https://abcnews.go.com/abcnews/topstories", category: "News"),
 
+        // MARK: - Apple
+        StarterFeed(name: "9to5Mac", url: "https://9to5mac.com/feed/", category: "Apple"),
+        StarterFeed(name: "Daring Fireball", url: "https://daringfireball.net/feeds/main", category: "Apple"),
+        StarterFeed(name: "MacRumors", url: "https://feeds.macrumors.com/MacRumors-All", category: "Apple"),
+        StarterFeed(name: "Six Colors", url: "https://sixcolors.com/feed/", category: "Apple"),
+        StarterFeed(name: "MacStories", url: "https://www.macstories.net/feed/", category: "Apple"),
+        StarterFeed(name: "AppleInsider", url: "https://appleinsider.com/rss/news/", category: "Apple"),
+        StarterFeed(name: "Cult of Mac", url: "https://www.cultofmac.com/feed/", category: "Apple"),
+        StarterFeed(name: "iMore", url: "https://www.imore.com/feed", category: "Apple"),
+        StarterFeed(name: "512 Pixels", url: "https://512pixels.net/feed/", category: "Apple"),
+        StarterFeed(name: "The Loop", url: "https://www.loopinsight.com/feed/", category: "Apple"),
+
         // MARK: - Travel
         StarterFeed(name: "Nomadic Matt", url: "https://www.nomadicmatt.com/feed/", category: "Travel"),
         StarterFeed(name: "The Points Guy", url: "https://thepointsguy.com/feed/", category: "Travel"),
         StarterFeed(name: "Matador Network", url: "https://matadornetwork.com/feed/", category: "Travel"),
         StarterFeed(name: "Atlas Obscura", url: "https://www.atlasobscura.com/feeds/latest", category: "Travel"),
+        StarterFeed(name: "Authentic Chic Lifestyle", url: "https://www.authenticchiclifestyle.com/blog-feed.xml", category: "Travel"),
 
         // MARK: - Design
         StarterFeed(name: "Dribbble Blog", url: "https://dribbble.com/stories.rss", category: "Design"),
