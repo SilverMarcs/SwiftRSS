@@ -26,8 +26,10 @@ enum StarterFeedCategory: String, CaseIterable {
     case apple = "Apple"
     case dev = "Development"
     case news = "News"
+    case travel = "Travel"
     case design = "Design"
     case science = "Science"
+    case research = "Research"
     case gaming = "Gaming"
     case finance = "Finance"
     case entertainment = "Entertainment"
@@ -57,6 +59,8 @@ enum StarterFeedCategory: String, CaseIterable {
         case .linux: "terminal"
         case .photography: "camera"
         case .productivity: "checkmark.circle"
+        case .travel: "airplane"
+        case .research: "books.vertical"
         }
     }
 
@@ -102,6 +106,16 @@ enum StarterFeedCategory: String, CaseIterable {
         StarterFeed(name: "Smashing Magazine", url: "https://www.smashingmagazine.com/feed/", category: "Development"),
         StarterFeed(name: "Martin Fowler", url: "https://martinfowler.com/feed.atom", category: "Development"),
         StarterFeed(name: "Joel on Software", url: "https://www.joelonsoftware.com/feed/", category: "Development"),
+        StarterFeed(name: "The Go Blog", url: "https://blog.golang.org/feed.atom", category: "Development"),
+        StarterFeed(name: "Rust Blog", url: "https://blog.rust-lang.org/feed.xml", category: "Development"),
+        StarterFeed(name: "Python Insider", url: "https://pythoninsider.blogspot.com/feeds/posts/default", category: "Development"),
+        StarterFeed(name: "Julia Evans", url: "https://jvns.ca/atom.xml", category: "Development"),
+        StarterFeed(name: "Netflix TechBlog", url: "https://netflixtechblog.com/feed", category: "Development"),
+        StarterFeed(name: "GitHub Blog", url: "https://github.blog/feed/", category: "Development"),
+        StarterFeed(name: "The Pragmatic Engineer", url: "https://blog.pragmaticengineer.com/rss/", category: "Development"),
+        StarterFeed(name: "Cloudflare Blog", url: "https://blog.cloudflare.com/rss/", category: "Development"),
+        StarterFeed(name: "Kubernetes Blog", url: "https://kubernetes.io/feed.xml", category: "Development"),
+        StarterFeed(name: "InfoQ", url: "https://www.infoq.com/feed/", category: "Development"),
 
         // MARK: - News
         StarterFeed(name: "BBC News", url: "https://feeds.bbci.co.uk/news/rss.xml", category: "News"),
@@ -110,6 +124,12 @@ enum StarterFeedCategory: String, CaseIterable {
         StarterFeed(name: "Al Jazeera", url: "https://www.aljazeera.com/xml/rss/all.xml", category: "News"),
         StarterFeed(name: "The Economist", url: "https://www.economist.com/international/rss.xml", category: "News"),
         StarterFeed(name: "ABC News", url: "https://abcnews.go.com/abcnews/topstories", category: "News"),
+
+        // MARK: - Travel
+        StarterFeed(name: "Nomadic Matt", url: "https://www.nomadicmatt.com/feed/", category: "Travel"),
+        StarterFeed(name: "The Points Guy", url: "https://thepointsguy.com/feed/", category: "Travel"),
+        StarterFeed(name: "Matador Network", url: "https://matadornetwork.com/feed/", category: "Travel"),
+        StarterFeed(name: "Atlas Obscura", url: "https://www.atlasobscura.com/feeds/latest", category: "Travel"),
 
         // MARK: - Design
         StarterFeed(name: "Dribbble Blog", url: "https://dribbble.com/stories.rss", category: "Design"),
@@ -126,6 +146,15 @@ enum StarterFeedCategory: String, CaseIterable {
         StarterFeed(name: "Quanta Magazine", url: "https://quantamagazine.org/feed/", category: "Science"),
         StarterFeed(name: "Phys.org", url: "https://phys.org/rss-feed/", category: "Science"),
         StarterFeed(name: "Space.com", url: "https://www.space.com/feeds/all", category: "Science"),
+
+        // MARK: - Research
+        StarterFeed(name: "arXiv CS: AI", url: "https://rss.arxiv.org/rss/cs.AI", category: "Research"),
+        StarterFeed(name: "arXiv CS: Machine Learning", url: "https://rss.arxiv.org/rss/cs.LG", category: "Research"),
+        StarterFeed(name: "arXiv CS: Computer Vision", url: "https://rss.arxiv.org/rss/cs.CV", category: "Research"),
+        StarterFeed(name: "arXiv CS: Software Engineering", url: "https://rss.arxiv.org/rss/cs.SE", category: "Research"),
+        StarterFeed(name: "arXiv CS: Programming Languages", url: "https://rss.arxiv.org/rss/cs.PL", category: "Research"),
+        StarterFeed(name: "arXiv CS: Security", url: "https://rss.arxiv.org/rss/cs.CR", category: "Research"),
+        StarterFeed(name: "arXiv Quantitative Biology", url: "https://rss.arxiv.org/rss/q-bio.QM", category: "Research"),
 
         // MARK: - Gaming
         StarterFeed(name: "Kotaku", url: "https://kotaku.com/rss", category: "Gaming"),

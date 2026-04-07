@@ -24,8 +24,19 @@ struct ContentView: View {
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("lastRefreshDate") private var lastRefreshDate: Double = 0
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("userName") private var userName = ""
 
     @Namespace private var transition
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: .now)
+        switch hour {
+        case 5..<12: return "Good Morning"
+        case 12..<17: return "Good Afternoon"
+        case 17..<22: return "Good Evening"
+        default: return "Good Night"
+        }
+    }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -52,7 +63,8 @@ struct ContentView: View {
                     .onDelete(perform: deleteFeeds)
                 }
             }
-            .navigationTitle("Feed")
+            // .navigationTitle(greeting)
+            // .navigationSubtitle(userName)
             .navigationDestination(for: ArticleFilter.self) { filter in
                 ArticleListView(filter: filter)
             }
@@ -63,6 +75,21 @@ struct ContentView: View {
                 ReederSpecificView(url: url)
             }
             .toolbarTitleDisplayMode(.inlineLarge)
+            .toolbar {
+                ToolbarItem(placement: .largeTitle) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(greeting)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        if !userName.isEmpty {
+                            Text(userName)
+                                .font(.title3.bold())
+                        }
+                    }
+                    .padding(.leading, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
             .refreshable {
                 await store.refreshAll()
                 lastRefreshDate = Date.now.timeIntervalSince1970
@@ -133,7 +160,7 @@ struct ContentView: View {
             get: { !hasCompletedOnboarding },
             set: { if !$0 { hasCompletedOnboarding = true } }
         )) {
-            OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            OnboardingView()
         }
     }
 

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @Binding var hasCompletedOnboarding: Bool
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     @State private var showFeedPicker = false
 
@@ -19,9 +19,7 @@ struct OnboardingView: View {
             }
         } else {
             WelcomePage {
-                withAnimation {
-                    showFeedPicker = true
-                }
+                showFeedPicker = true
             }
         }
     }

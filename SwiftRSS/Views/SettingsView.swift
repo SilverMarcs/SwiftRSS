@@ -32,6 +32,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(FeedStore.self) private var store
+    @AppStorage("userName") private var userName = ""
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showFileImporter = false
@@ -43,6 +44,10 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section("Profile") {
+                    TextField("Your Name", text: $userName)
+                }
+
                 Section("OPML") {
                     Button {
                         showFileImporter = true
@@ -89,6 +94,15 @@ struct SettingsView: View {
                     }
                 }
                 #endif
+
+                Section {
+                    HStack {
+                        Spacer()
+                        LynkSphereByline()
+                        Spacer()
+                    }
+                }
+                .listRowBackground(Color.clear)
             }
             .formStyle(.grouped)
             .navigationTitle("Settings")

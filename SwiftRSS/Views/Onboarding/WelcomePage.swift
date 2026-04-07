@@ -10,21 +10,28 @@ import SwiftUI
 struct WelcomePage: View {
     var onContinue: () -> Void
 
+    @State private var showByLine = false
+
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 40) {
             Spacer()
 
             VStack(spacing: 12) {
                 Image(systemName: "dot.radiowaves.up.forward")
                     .font(.system(size: 64))
+                    .bold()
                     .foregroundStyle(.accent)
-
-                Text("Welcome to FeedDeck")
-                    .font(.largeTitle.bold())
-
-                Text("Your feeds, all in one place.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                
+                VStack(spacing: 5) {
+                    Text("Welcome to FeedDeck")
+                        .font(.largeTitle.bold())
+                    
+                    
+                    Text("Your feeds, all in one place.")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             VStack(alignment: .leading, spacing: 20) {
@@ -51,18 +58,29 @@ struct WelcomePage: View {
 
             Spacer()
 
-            Button {
-                onContinue()
-            } label: {
-                Text("Get Started")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
+            VStack(spacing: 16) {
+                Button {
+                    onContinue()
+                } label: {
+                    Text("Get Started")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
+                .padding(.horizontal, 32)
+
+                LynkSphereByline()
+                    .opacity(showByLine ? 1 : 0)
+                    .offset(y: showByLine ? 0 : 8)
             }
-            .buttonStyle(.glassProminent)
-            .controlSize(.large)
-            .padding(.horizontal, 32)
             .padding(.bottom, 32)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8).delay(0.5)) {
+                showByLine = true
+            }
         }
     }
 
