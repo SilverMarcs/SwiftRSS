@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct SwiftRSSApp: App {
+struct FeedDeckApp: App {
     let container: ModelContainer
     @State var store: FeedStore
 

@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "08AE155B2E6BC6E600BBBE1A"
-               BuildableName = "SwiftRSS.app"
-               BlueprintName = "SwiftRSS"
+               BuildableName = "FeedDeck.app"
+               BlueprintName = "FeedDeck"
                ReferencedContainer = "container:SwiftRSS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "08AE155B2E6BC6E600BBBE1A"
-            BuildableName = "SwiftRSS.app"
-            BlueprintName = "SwiftRSS"
+            BuildableName = "FeedDeck.app"
+            BlueprintName = "FeedDeck"
             ReferencedContainer = "container:SwiftRSS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "08AE155B2E6BC6E600BBBE1A"
-            BuildableName = "SwiftRSS.app"
-            BlueprintName = "SwiftRSS"
+            BuildableName = "FeedDeck.app"
+            BlueprintName = "FeedDeck"
             ReferencedContainer = "container:SwiftRSS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

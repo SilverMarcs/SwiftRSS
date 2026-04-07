@@ -19,7 +19,7 @@ struct WelcomePage: View {
                     .font(.system(size: 64))
                     .foregroundStyle(.accent)
 
-                Text("Welcome to SwiftRSS")
+                Text("Welcome to FeedDeck")
                     .font(.largeTitle.bold())
 
                 Text("Your feeds, all in one place.")

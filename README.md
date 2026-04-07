@@ -1,4 +1,4 @@
-# SwiftRSS
+# FeedDeck
 
 RSS Reader app with SwiftUI & Liquid Glass.
 Uses several new SwiftUI APIs introduced in WWDC25.

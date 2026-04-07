@@ -145,7 +145,7 @@ struct SettingsView: View {
                 isPresented: $showFileExporter,
                 document: OPMLDocument(data: exportData ?? Data()),
                 contentType: UTType(filenameExtension: "opml") ?? .xml,
-                defaultFilename: "SwiftRSS Feeds.opml"
+                defaultFilename: "FeedDeck Feeds.opml"
             ) { _ in }
             .alert("Import Error", isPresented: .init(get: { importError != nil }, set: { if !$0 { importError = nil } })) {
                 Button("OK") { }
@@ -160,7 +160,7 @@ struct SettingsView: View {
         var xml = """
         <?xml version="1.0" encoding="UTF-8"?>
         <opml version="2.0">
-        <head><title>SwiftRSS Feeds</title></head>
+        <head><title>FeedDeck Feeds</title></head>
         <body>\n
         """
         for feed in feeds {
