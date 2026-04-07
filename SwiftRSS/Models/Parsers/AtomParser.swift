@@ -20,23 +20,11 @@ struct AtomParser: FeedParser {
     
     func parseMeta(from document: Fuzi.XMLDocument) -> FeedMeta {
         var meta = FeedMeta()
-        
+
         meta.title = document.firstChild(xpath: "/feed/title")?.stringValue ??
                     document.firstChild(xpath: "//*[local-name()='feed']/*[local-name()='title']")?.stringValue
-        
-        // Try logo first, then icon
-        let logoURL = document.firstChild(xpath: "/feed/logo")?.stringValue ??
-                     document.firstChild(xpath: "//*[local-name()='feed']/*[local-name()='logo']")?.stringValue
-        let iconURL = document.firstChild(xpath: "/feed/icon")?.stringValue ??
-                     document.firstChild(xpath: "//*[local-name()='feed']/*[local-name()='icon']")?.stringValue
-        
-        if let logo = logoURL {
-            meta.thumbnailURL = URL(string: logo, relativeTo: baseURL)?.absoluteURL
-        } else if let icon = iconURL {
-            meta.thumbnailURL = URL(string: icon, relativeTo: baseURL)?.absoluteURL
-        }
-        
-        meta.thumbnailURL = meta.thumbnailURL ?? getFaviconURL()
+
+        meta.thumbnailURL = FeedMeta.faviconURL(for: baseURL)
         return meta
     }
     
@@ -98,13 +86,4 @@ struct AtomParser: FeedParser {
         return URL(string: urlString, relativeTo: baseURL)?.absoluteURL
     }
     
-    private func getFaviconURL() -> URL? {
-        var components = URLComponents()
-        components.scheme = baseURL.scheme
-        components.host = baseURL.host
-        components.port = baseURL.port
-        
-        guard let baseHost = components.url else { return nil }
-        return URL(string: "/favicon.ico", relativeTo: baseHost)?.absoluteURL
-    }
 }

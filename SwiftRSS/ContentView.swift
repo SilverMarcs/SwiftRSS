@@ -95,8 +95,9 @@ struct ContentView: View {
                 #endif
             }
             .sheet(isPresented: $showAddFeed) {
-                AddFeedSheet()
-                    .presentationDetents([.medium])
+                Task { await store.refreshAll() }
+            } content: {
+                DiscoverFeedsView()
                     #if !os(macOS)
                     .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
                     #endif

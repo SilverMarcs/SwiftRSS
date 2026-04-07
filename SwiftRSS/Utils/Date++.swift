@@ -66,6 +66,15 @@ enum RFCDate {
         return df
     }()
 
+    // Plain date (used by dc:date in RSS 1.0/RDF feeds, e.g. "2026-04-06")
+    private static let plainDate: DateFormatter = {
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.timeZone = TimeZone(secondsFromGMT: 0)
+        df.dateFormat = "yyyy-MM-dd"
+        return df
+    }()
+
     static func parse(_ s: String) -> Date? {
         let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -90,7 +99,10 @@ enum RFCDate {
         
         // 7. RFC1123 without day name - Very rare
         if let d = rfc1123NoDay.date(from: trimmed) { return d }
-        
+
+        // 8. Plain date (yyyy-MM-dd) - Used by dc:date in RDF feeds
+        if let d = plainDate.date(from: trimmed) { return d }
+
         return nil
     }
 }

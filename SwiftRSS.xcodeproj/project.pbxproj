@@ -16,16 +16,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		08AE155C2E6BC6E600BBBE1A /* SwiftRSS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FeedDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		08AE155C2E6BC6E600BBBE1A /* FeedDeck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FeedDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "SwiftRSS" target */ = {
+		0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "FeedDeck" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Utils/BackupReaderViews.swift,
 			);
-			target = 08AE155B2E6BC6E600BBBE1A /* SwiftRSS */;
+			target = 08AE155B2E6BC6E600BBBE1A /* FeedDeck */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -33,7 +33,7 @@
 		08AE155E2E6BC6E600BBBE1A /* SwiftRSS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "SwiftRSS" target */,
+				0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "FeedDeck" target */,
 			);
 			path = SwiftRSS;
 			sourceTree = "<group>";
@@ -68,7 +68,7 @@
 		08AE155D2E6BC6E600BBBE1A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				08AE155C2E6BC6E600BBBE1A /* SwiftRSS.app */,
+				08AE155C2E6BC6E600BBBE1A /* FeedDeck.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -76,9 +76,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		08AE155B2E6BC6E600BBBE1A /* SwiftRSS */ = {
+		08AE155B2E6BC6E600BBBE1A /* FeedDeck */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 08AE15672E6BC6E700BBBE1A /* Build configuration list for PBXNativeTarget "SwiftRSS" */;
+			buildConfigurationList = 08AE15672E6BC6E700BBBE1A /* Build configuration list for PBXNativeTarget "FeedDeck" */;
 			buildPhases = (
 				08AE15582E6BC6E600BBBE1A /* Sources */,
 				08AE15592E6BC6E600BBBE1A /* Frameworks */,
@@ -101,7 +101,7 @@
 				08BB39032E849D5100BDF671 /* Reeeed */,
 			);
 			productName = FeedDeck;
-			productReference = 08AE155C2E6BC6E600BBBE1A /* SwiftRSS.app */;
+			productReference = 08AE155C2E6BC6E600BBBE1A /* FeedDeck.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -137,7 +137,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				08AE155B2E6BC6E600BBBE1A /* SwiftRSS */,
+				08AE155B2E6BC6E600BBBE1A /* FeedDeck */,
 			);
 		};
 /* End PBXProject section */
@@ -401,7 +401,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		08AE15672E6BC6E700BBBE1A /* Build configuration list for PBXNativeTarget "SwiftRSS" */ = {
+		08AE15672E6BC6E700BBBE1A /* Build configuration list for PBXNativeTarget "FeedDeck" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08AE15682E6BC6E700BBBE1A /* Debug */,

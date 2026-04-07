@@ -19,6 +19,11 @@ struct FeedItem: Sendable {
 struct FeedMeta: Sendable {
     var title: String?
     var thumbnailURL: URL?
+
+    static func faviconURL(for feedURL: URL) -> URL? {
+        guard let host = feedURL.host else { return nil }
+        return URL(string: "https://www.google.com/s2/favicons?domain=\(host)&sz=64")
+    }
 }
 
 enum FeedFormat { case rss2, atom }

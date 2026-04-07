@@ -16,19 +16,19 @@ struct RSSParser: FeedParser {
     }()
     
     func parseItems(from document: Fuzi.XMLDocument) throws -> [FeedItem] {
-        let itemNodes = Array(document.xpath("/rss/channel/item").prefix(maxItems))
+        var itemNodes = Array(document.xpath("/rss/channel/item").prefix(maxItems))
+        // RSS 1.0 (RDF) — items are at the root level, not nested in channel
+        if itemNodes.isEmpty {
+            itemNodes = Array(document.xpath("//*[local-name()='item']").prefix(maxItems))
+        }
         return itemNodes.map { parseItem($0) }
     }
-    
+
     func parseMeta(from document: Fuzi.XMLDocument) -> FeedMeta {
         var meta = FeedMeta()
         meta.title = document.firstChild(xpath: "/rss/channel/title")?.stringValue
-        
-        if let imageURL = document.firstChild(xpath: "/rss/channel/image/url")?.stringValue {
-            meta.thumbnailURL = URL(string: imageURL, relativeTo: baseURL)?.absoluteURL
-        }
-        
-        meta.thumbnailURL = meta.thumbnailURL ?? getFaviconURL()
+            ?? document.firstChild(xpath: "//*[local-name()='channel']/*[local-name()='title']")?.stringValue
+        meta.thumbnailURL = FeedMeta.faviconURL(for: baseURL)
         return meta
     }
     
@@ -51,9 +51,10 @@ struct RSSParser: FeedParser {
         item.author = itemNode.firstChild(tag: "author")?.stringValue ??
                      itemNode.firstChild(xpath: "*[local-name()='creator']")?.stringValue
         
-        // Published date
+        // Published date (pubDate for RSS 2.0, dc:date for RSS 1.0/RDF)
         if let dateString = itemNode.firstChild(tag: "pubDate")?.stringValue ??
-                           itemNode.firstChild(tag: "published")?.stringValue {
+                           itemNode.firstChild(tag: "published")?.stringValue ??
+                           itemNode.firstChild(xpath: "*[local-name()='date']")?.stringValue {
             item.publishedAt = RFCDate.parse(dateString)
         }
         
@@ -109,13 +110,4 @@ struct RSSParser: FeedParser {
         return URL(string: urlString, relativeTo: baseURL)?.absoluteURL
     }
     
-    private func getFaviconURL() -> URL? {
-        var components = URLComponents()
-        components.scheme = baseURL.scheme
-        components.host = baseURL.host
-        components.port = baseURL.port
-        
-        guard let baseHost = components.url else { return nil }
-        return URL(string: "/favicon.ico", relativeTo: baseHost)?.absoluteURL
-    }
 }

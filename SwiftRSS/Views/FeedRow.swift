@@ -16,10 +16,12 @@ struct FeedRow: View {
             Text(feed.title)
         } icon: {
             if let imageURL = feed.thumbnailURL {
-                CachedAsyncImage(url: imageURL, targetSize: 50)
+                CachedAsyncImage(url: imageURL, targetSize: 40)
+                    .frame(width: 24, height: 24)
                     .clipShape(.rect(cornerRadius: 5))
             } else {
                 Image(systemName: "dot.radiowaves.left.and.right")
+                    .frame(width: 24, height: 24)
                     .imageScale(.small)
             }
         }

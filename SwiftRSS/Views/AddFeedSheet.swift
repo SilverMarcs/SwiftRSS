@@ -6,65 +6,161 @@
 //
 
 import SwiftUI
+import SwiftData
+import SwiftMediaViewer
 
-struct AddFeedSheet: View {
+struct DiscoverFeedsView: View {
     @Environment(FeedStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
-    @State private var urlString = ""
-    @State private var isAdding = false
-    @State private var errorText: String?
+    @Query private var existingFeeds: [Feed]
+
+    @State private var searchText = ""
+    @State private var isAdding: Set<String> = []
+    @State private var addedFeeds: Set<String> = []
+    @State private var showAddByURL = false
+
+    private var existingFeedURLs: Set<String> {
+        Set(existingFeeds.compactMap { $0.url?.absoluteString })
+    }
+
+    private var filteredCategories: [StarterFeedCategory] {
+        if searchText.isEmpty {
+            return StarterFeedCategory.allCases
+        }
+        return StarterFeedCategory.allCases.filter { category in
+            !filteredFeeds(for: category).isEmpty
+        }
+    }
+
+    private func filteredFeeds(for category: StarterFeedCategory) -> [StarterFeed] {
+        let feeds = category.feeds
+        if searchText.isEmpty { return feeds }
+        let query = searchText.lowercased()
+        return feeds.filter {
+            $0.name.lowercased().contains(query) ||
+            $0.category.lowercased().contains(query)
+        }
+    }
+
+    private func feedState(for feed: StarterFeed) -> FeedRowState {
+        if existingFeedURLs.contains(feed.url) || addedFeeds.contains(feed.url) {
+            return .added
+        }
+        if isAdding.contains(feed.url) {
+            return .adding
+        }
+        return .available
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField("Enter feed url", text: $urlString)
-                    #if !os(macOS)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.URL)
-                    #endif
-                } header: {
-                    Text("Feed URL")
-                } footer: {
-                    Text("Supports RSS, XML and Atom")
-                }
-
-                if let err = errorText {
-                    Text(err)
-                        .foregroundStyle(.red)
+            List {
+                ForEach(filteredCategories, id: \.self) { category in
+                    let feeds = filteredFeeds(for: category)
+                    if !feeds.isEmpty {
+                        Section {
+                            ForEach(feeds) { feed in
+                                DiscoverFeedRow(
+                                    feed: feed,
+                                    state: feedState(for: feed),
+                                    onAdd: { await addFeed(feed) }
+                                )
+                            }
+                        } header: {
+                            Label(category.rawValue, systemImage: category.icon)
+                        }
+                    }
                 }
             }
-            .navigationTitle("Add Feed")
+            .searchable(text: $searchText, prompt: "Search feeds")
+            .searchPresentationToolbarBehavior(.avoidHidingContent)
+            .navigationTitle("Discover Feeds")
             .toolbarTitleDisplayMode(.inline)
-            .formStyle(.grouped)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button {
+                        showAddByURL = true
+                    } label: {
+                        Image(systemName: "link.badge.plus")
+                    }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(role: .confirm) {
-                        Task { await addFeed() }
-                    }
-                    .disabled(isAdding || URL(string: urlString) == nil)
+                    Button("Done") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showAddByURL) {
+                AddFeedByURLSheet()
+                    .presentationDetents([.medium])
             }
         }
     }
 
-    private func addFeed() async {
-        isAdding = true
-        defer { isAdding = false }
+    // MARK: - Actions
 
-        guard let url = URL(string: urlString) else { return }
-        errorText = nil
+    private func addFeed(_ feed: StarterFeed) async {
+        guard let url = URL(string: feed.url) else { return }
+        isAdding.insert(feed.url)
+        defer { isAdding.remove(feed.url) }
+
         do {
             try await store.addFeed(url: url)
-            await store.refreshAll()
-            dismiss()
+            addedFeeds.insert(feed.url)
         } catch {
-            errorText = "Failed to add feed: \(error.localizedDescription)"
+            // Silently fail for catalog feeds
         }
+    }
+}
+
+// MARK: - Feed Row State
+
+private enum FeedRowState {
+    case available, adding, added
+}
+
+// MARK: - Discover Feed Row
+
+private struct DiscoverFeedRow: View {
+    let feed: StarterFeed
+    let state: FeedRowState
+    let onAdd: () async -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let iconURL = feed.iconURL {
+                CachedAsyncImage(url: iconURL, targetSize: 40)
+                    .frame(width: 28, height: 28)
+                    .clipShape(.rect(cornerRadius: 6))
+            } else {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .frame(width: 28, height: 28)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(feed.name)
+
+            Spacer()
+
+            switch state {
+            case .available:
+                Button {
+                    Task { await onAdd() }
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(.accent)
+                        .imageScale(.large)
+                }
+                .buttonStyle(.plain)
+            case .adding:
+                ProgressView()
+                    .controlSize(.small)
+            case .added:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .imageScale(.large)
+            }
+        }
+        .contentShape(Rectangle())
     }
 }
