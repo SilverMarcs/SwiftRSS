@@ -96,6 +96,14 @@ final class FeedStore {
         modelContext.insert(Feed(title: title, url: url, thumbnailURL: meta.thumbnailURL))
     }
 
+    func removeFeed(url: URL) {
+        let descriptor = FetchDescriptor<Feed>(predicate: #Predicate { $0.url == url })
+        guard let feeds = try? modelContext.fetch(descriptor) else { return }
+        for feed in feeds {
+            modelContext.delete(feed)
+        }
+    }
+
     // MARK: - OPML
 
     func importOPML(data: Data) async throws {

@@ -17,6 +17,7 @@ struct DiscoverFeedsView: View {
 
     @State private var searchText = ""
     @State private var isAdding: Set<String> = []
+    @State private var isRemoving: Set<String> = []
     @State private var addedFeeds: Set<String> = []
     @State private var showAddByURL = false
 
@@ -44,6 +45,9 @@ struct DiscoverFeedsView: View {
     }
 
     private func feedState(for feed: StarterFeed) -> FeedRowState {
+        if isRemoving.contains(feed.url) {
+            return .removing
+        }
         if existingFeedURLs.contains(feed.url) || addedFeeds.contains(feed.url) {
             return .added
         }
@@ -64,7 +68,8 @@ struct DiscoverFeedsView: View {
                                 DiscoverFeedRow(
                                     feed: feed,
                                     state: feedState(for: feed),
-                                    onAdd: { await addFeed(feed) }
+                                    onAdd: { await addFeed(feed) },
+                                    onRemove: { await removeFeed(feed) }
                                 )
                             }
                         } header: {
@@ -111,12 +116,21 @@ struct DiscoverFeedsView: View {
             // Silently fail for catalog feeds
         }
     }
+
+    private func removeFeed(_ feed: StarterFeed) async {
+        guard let url = URL(string: feed.url) else { return }
+        isRemoving.insert(feed.url)
+        defer { isRemoving.remove(feed.url) }
+
+        store.removeFeed(url: url)
+        addedFeeds.remove(feed.url)
+    }
 }
 
 // MARK: - Feed Row State
 
 private enum FeedRowState {
-    case available, adding, added
+    case available, adding, added, removing
 }
 
 // MARK: - Discover Feed Row
@@ -125,6 +139,7 @@ private struct DiscoverFeedRow: View {
     let feed: StarterFeed
     let state: FeedRowState
     let onAdd: () async -> Void
+    let onRemove: () async -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -152,13 +167,18 @@ private struct DiscoverFeedRow: View {
                         .imageScale(.large)
                 }
                 .buttonStyle(.plain)
-            case .adding:
+            case .adding, .removing:
                 ProgressView()
                     .controlSize(.small)
             case .added:
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .imageScale(.large)
+                Button {
+                    Task { await onRemove() }
+                } label: {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .imageScale(.large)
+                }
+                .buttonStyle(.plain)
             }
         }
         .contentShape(Rectangle())
