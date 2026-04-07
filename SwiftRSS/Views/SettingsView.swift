@@ -32,7 +32,6 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(FeedStore.self) private var store
-    @AppStorage("geminiApiKey") private var geminiApiKey: String = ""
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showFileImporter = false
@@ -63,14 +62,6 @@ struct SettingsView: View {
 
                 Section("Reading") {
                     Toggle("Open links in in-app reader view", isOn: $openLinksInReaderView)
-                }
-                
-                Section("AI Summary") {
-                    SecureField("Gemini API Key", text: $geminiApiKey)
-                    #if !os(macOS)
-                        .textInputAutocapitalization(.never)
-                    #endif
-                        .autocorrectionDisabled()
                 }
                 
                 Section("Cache") {

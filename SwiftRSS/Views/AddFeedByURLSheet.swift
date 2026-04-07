@@ -19,7 +19,7 @@ struct AddFeedByURLSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField(text: $urlString)
+                    TextField("Enter URL", text: $urlString)
                         #if !os(macOS)
                         .textInputAutocapitalization(.never)
                         #endif
