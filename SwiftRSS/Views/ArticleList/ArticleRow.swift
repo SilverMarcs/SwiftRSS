@@ -15,11 +15,36 @@ struct ArticleRow: View {
     let article: Article
 
     var body: some View {
+        Group {
+#if os(macOS)
+            compactBody
+#else
+            standardBody
+#endif
+        }
+        .opacity(article.isRead ? 0.7 : 1)
+        .contextMenu {
+            readButton
+            starButton
+            Divider()
+            if let link = article.link {
+                ShareLink(item: link)
+            }
+        }
+        .swipeActions(edge: .leading) {
+            readButton.tint(.blue)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            starButton.tint(.orange)
+        }
+    }
+
+    var standardBody: some View {
         VStack(alignment: .leading) {
             if let imageURL = article.featuredImageURL {
                 CachedAsyncImage(url: imageURL, targetSize: 400)
-                    .frame(height: 170)
-                    .aspectRatio(contentMode: .fill)
+                    .aspectRatio(16/9, contentMode: .fill)
+                    .clipped()
                     .cornerRadius(8)
             }
 
@@ -57,21 +82,51 @@ struct ArticleRow: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .opacity(article.isRead ? 0.5 : 1)
-        .contextMenu {
-            readButton
-            starButton
-            Divider()
-            if let link = article.link {
-                ShareLink(item: link)
+    }
+
+    var compactBody: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Group {
+                if let imageURL = article.featuredImageURL {
+                    CachedAsyncImage(url: imageURL, targetSize: 150)
+                        .aspectRatio(contentMode: .fill)
+                } else if let imageURL = article.feed?.thumbnailURL {
+                    CachedAsyncImage(url: imageURL, targetSize: 150)
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: "apple.book.pages.fill")
+                        .imageScale(.large)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .frame(width: 60, height: 60)
+            .clipped()
+            .clipShape(.rect(cornerRadius: 5))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(article.title)
+                    .lineLimit(2)
+                    .font(.system(size: 13, weight: .semibold))
+                
+                Spacer()
+
+                HStack(spacing: 4) {
+                    Text(article.feed?.title ?? "")
+                        .lineLimit(1)
+                    Text("·")
+                    Text(article.publishedAt.publishedFormat)
+                    if article.isStarred {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
         }
-        .swipeActions(edge: .leading) {
-            readButton.tint(.blue)
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            starButton.tint(.orange)
-        }
+        .padding(5)
     }
 
     var readButton: some View {

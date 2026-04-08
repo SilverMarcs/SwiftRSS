@@ -60,6 +60,8 @@ struct ArticleListView: View {
                 ArticleRow(article: article)
                     .tag(article)
             }
+            .listRowSeparator(.hidden, edges: .top)
+            .listRowSeparator(.visible, edges: .bottom)
         }
         .contentMargins(.top, 4)
         .contentMargins(.horizontal, 5)

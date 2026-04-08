@@ -82,12 +82,14 @@ struct DiscoverFeedsView: View {
                     }
                 }
             }
+            #if !os(macOS)
             .searchable(text: $searchText, prompt: "Search feeds")
+            #endif
             .searchPresentationToolbarBehavior(.avoidHidingContent)
             .navigationTitle("Discover Feeds")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: placement) {
                     Button {
                         showAddByURL = true
                     } label: {
@@ -128,5 +130,13 @@ struct DiscoverFeedsView: View {
 
         store.removeFeed(url: url)
         addedFeeds.remove(feed.url)
+    }
+    
+    private var placement: ToolbarItemPlacement {
+        #if os(macOS)
+        .destructiveAction
+        #else
+        .topBarLeading
+        #endif
     }
 }

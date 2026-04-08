@@ -23,10 +23,8 @@ xcuserdata/
 .DS_Store
 
 run.sh
-.asc/
-
+run-ios.sh
 
 screenshot-generator/
+Screenshots/
 
-ASC-Screenshots/
-run-ios.sh

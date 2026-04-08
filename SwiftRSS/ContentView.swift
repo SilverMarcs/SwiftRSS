@@ -69,6 +69,7 @@ struct ContentView: View {
                     Label("Discover Feeds", systemImage: "plus")
                 }
                 .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(10)
             }
             #else
@@ -126,7 +127,7 @@ struct ContentView: View {
         } content: {
             DiscoverFeedsView()
                 #if os(macOS)
-                .frame(minWidth: 560, idealWidth: 640, minHeight: 600, idealHeight: 720)
+                .frame(minWidth: 500, idealWidth: 600, minHeight: 500, idealHeight: 600)
                 #else
                 .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
                 #endif
@@ -152,11 +153,6 @@ struct ContentView: View {
             }
             return .systemAction(prefersInApp: true)
         })
-        .onAppear {
-            if !feeds.isEmpty {
-                hasCompletedOnboarding = true
-            }
-        }
         .sheet(isPresented: Binding(
             get: { !hasCompletedOnboarding },
             set: { if !$0 { hasCompletedOnboarding = true } }
