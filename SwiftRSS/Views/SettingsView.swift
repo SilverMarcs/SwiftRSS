@@ -44,9 +44,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Profile") {
-                    TextField("Your Name", text: $userName)
-                }
+//                Section("Profile") {
+//                    TextField("Your Name", text: $userName)
+//                }
 
                 Section("OPML") {
                     Button {

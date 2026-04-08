@@ -15,6 +15,7 @@ struct ArticleListView: View {
     @Query(sort: \Article.publishedAt, order: .reverse) private var allArticles: [Article]
 
     let filter: ArticleFilter
+    @Binding var selection: Article?
 
     @State private var searchText = ""
     @State private var showingUnreadOnly = false
@@ -54,12 +55,10 @@ struct ArticleListView: View {
     }
 
     var body: some View {
-        List {
+        List(selection: $selection) {
             ForEach(articles) { article in
-                NavigationLink(value: article) {
-                    ArticleRow(article: article)
-                }
-                .navigationLinkIndicatorVisibility(.hidden)
+                ArticleRow(article: article)
+                    .tag(article)
             }
         }
         .contentMargins(.top, 4)
@@ -67,7 +66,29 @@ struct ArticleListView: View {
         .navigationTitle(filter.displayName)
         .toolbarTitleDisplayMode(.inline)
         .navigationSubtitle("\(articles.count) articles")
+//        .safeAreaBar(edge: .top) {
+//            HStack {
+//                Image(systemName: "magnifyingglass")
+//                    .foregroundStyle(.secondary)
+//                TextField("Search Articles", text: $searchText)
+//                    .textFieldStyle(.plain)
+//                
+//                if !searchText.isEmpty {
+//                    Button(action: { searchText = "" }) {
+//                        Image(systemName: "xmark.circle.fill")
+//                            .foregroundStyle(.secondary)
+//                    }
+//                }
+//            }
+//            .padding(.vertical, 5)
+//            .padding(.horizontal, 7)
+//            .background(.fill.tertiary)
+//            .cornerRadius(16)
+//            .padding(.horizontal, 10)
+//        }
+        #if !os(macOS)
         .searchable(text: $searchText, prompt: "Search Articles")
+        #endif
         .refreshable {
             isRefreshableInFlight = true
             defer { isRefreshableInFlight = false }

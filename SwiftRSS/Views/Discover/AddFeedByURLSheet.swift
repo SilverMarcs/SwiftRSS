@@ -1,8 +1,8 @@
 //
 //  AddFeedByURLSheet.swift
-//  SwiftRSS
+//  FeedDeck
 //
-//  Created by Zabir Raihan on 07/04/2026.
+//  Created by Zabir Raihan on 08/04/2026.
 //
 
 import SwiftUI

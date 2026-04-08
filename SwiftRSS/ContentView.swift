@@ -19,7 +19,9 @@ struct ContentView: View {
 
     @State var showAddFeed = false
     @State var showSettings = false
-    @State var navigationPath = NavigationPath()
+    @State private var selectedFilter: ArticleFilter?
+    @State private var selectedArticle: Article?
+    @State private var detailPath = NavigationPath()
 
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("lastRefreshDate") private var lastRefreshDate: Double = 0
@@ -28,19 +30,9 @@ struct ContentView: View {
 
     @Namespace private var transition
 
-    private var greeting: String {
-        let hour = Calendar.current.component(.hour, from: .now)
-        switch hour {
-        case 5..<12: return "Good Morning"
-        case 12..<17: return "Good Afternoon"
-        case 17..<22: return "Good Evening"
-        default: return "Good Night"
-        }
-    }
-
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            List {
+        NavigationSplitView {
+            List(selection: $selectedFilter) {
                 Section("Smart") {
                     ForEach(ArticleFilter.smartFilters, id: \.self) { filter in
                         NavigationLink(value: filter) {
@@ -63,39 +55,24 @@ struct ContentView: View {
                     .onDelete(perform: deleteFeeds)
                 }
             }
-            // .navigationTitle(greeting)
-            // .navigationSubtitle(userName)
-            .navigationDestination(for: ArticleFilter.self) { filter in
-                ArticleListView(filter: filter)
-            }
-            .navigationDestination(for: Article.self) { article in
-                ArticleReaderView(article: article)
-            }
-            .navigationDestination(for: URL.self) { url in
-                ReederSpecificView(url: url)
-            }
+            .navigationTitle("FeedDeck")
             .toolbarTitleDisplayMode(.inlineLarge)
-            .toolbar {
-                ToolbarItem(placement: .largeTitle) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(greeting)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        if !userName.isEmpty {
-                            Text(userName)
-                                .font(.title3.bold())
-                        }
-                    }
-                    .padding(.leading, 10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
             .refreshable {
                 await store.refreshAll()
                 lastRefreshDate = Date.now.timeIntervalSince1970
             }
+            #if os(macOS)
+            .safeAreaBar(edge: .bottom) {
+                Button {
+                    showAddFeed.toggle()
+                } label: {
+                    Label("Discover Feeds", systemImage: "plus")
+                }
+                .buttonStyle(.plain)
+                .padding(10)
+            }
+            #else
             .toolbar {
-                #if !os(macOS)
                 ToolbarItem {
                     Button {
                         showSettings.toggle()
@@ -104,7 +81,6 @@ struct ContentView: View {
                     }
                 }
                 .matchedTransitionSource(id: "settings", in: transition)
-                #endif
 
                 ToolbarSpacer(.flexible, placement: .platformBar)
 
@@ -117,24 +93,49 @@ struct ContentView: View {
                     }
                     .buttonStyle(.glassProminent)
                 }
-                #if !os(macOS)
                 .matchedTransitionSource(id: "add-feed", in: transition)
+            }
+            #endif
+        } content: {
+            if let selectedFilter {
+                ArticleListView(filter: selectedFilter, selection: $selectedArticle)
+            } else {
+                ScrollView {
+                    ContentUnavailableView("Select a Feed", systemImage: "list.bullet.rectangle")
+                }
+                .defaultScrollAnchor(.center)
+            }
+        } detail: {
+            NavigationStack(path: $detailPath) {
+                if let selectedArticle {
+                    ArticleReaderView(article: selectedArticle)
+                        .id(selectedArticle.id)
+                        .navigationDestination(for: URL.self) { url in
+                            ReederSpecificView(url: url)
+                        }
+                } else {
+                    ScrollView {
+                        ContentUnavailableView("Select an Article", systemImage: "doc.richtext")
+                    }
+                    .defaultScrollAnchor(.center)
+                }
+            }
+        }
+        .sheet(isPresented: $showAddFeed) {
+            Task { await store.refreshAll() }
+        } content: {
+            DiscoverFeedsView()
+                #if os(macOS)
+                .frame(minWidth: 560, idealWidth: 640, minHeight: 600, idealHeight: 720)
+                #else
+                .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
                 #endif
-            }
-            .sheet(isPresented: $showAddFeed) {
-                Task { await store.refreshAll() }
-            } content: {
-                DiscoverFeedsView()
-                    #if !os(macOS)
-                    .navigationTransition(.zoom(sourceID: "add-feed", in: transition))
-                    #endif
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-                    #if !os(macOS)
-                    .navigationTransition(.zoom(sourceID: "settings", in: transition))
-                    #endif
-            }
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+                #if !os(macOS)
+                .navigationTransition(.zoom(sourceID: "settings", in: transition))
+                #endif
         }
         .task(id: scenePhase) {
             if scenePhase == .active {
@@ -146,7 +147,7 @@ struct ContentView: View {
         }
         .environment(\.openURL, OpenURLAction { url in
             if openLinksInReaderView {
-                navigationPath.append(url)
+                detailPath.append(url)
                 return .handled
             }
             return .systemAction(prefersInApp: true)
@@ -156,11 +157,12 @@ struct ContentView: View {
                 hasCompletedOnboarding = true
             }
         }
-        .fullScreenCover(isPresented: Binding(
+        .sheet(isPresented: Binding(
             get: { !hasCompletedOnboarding },
             set: { if !$0 { hasCompletedOnboarding = true } }
         )) {
             OnboardingView()
+                .interactiveDismissDisabled(false)
         }
     }
 

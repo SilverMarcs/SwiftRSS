@@ -41,6 +41,8 @@ struct ReederSpecificView: View {
             ToolbarItem(placement: .platformBar) {
                 ShareLink(item: url)
             }
+            
+            ToolbarSpacer(.fixed)
         }
         .sheet(isPresented: $showAISheet) {
             if let text = extractedText {

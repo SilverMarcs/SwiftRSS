@@ -19,22 +19,9 @@
 		08AE155C2E6BC6E600BBBE1A /* FeedDeck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FeedDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "FeedDeck" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Utils/BackupReaderViews.swift,
-			);
-			target = 08AE155B2E6BC6E600BBBE1A /* FeedDeck */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		08AE155E2E6BC6E600BBBE1A /* SwiftRSS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				0835ADC02E6C8AA7006C5F02 /* Exceptions for "SwiftRSS" folder in "FeedDeck" target */,
-			);
 			path = SwiftRSS;
 			sourceTree = "<group>";
 		};
