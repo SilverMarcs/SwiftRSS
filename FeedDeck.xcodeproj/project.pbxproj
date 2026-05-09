@@ -22,9 +22,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		08AE155E2E6BC6E600BBBE1A /* SwiftRSS */ = {
+		08AE155E2E6BC6E600BBBE1A /* FeedDeck */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SwiftRSS;
+			path = FeedDeck;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -51,7 +51,7 @@
 			children = (
 				0802A47A2F86DEA90036AA3F /* FeedDeck.entitlements */,
 				0802A4792F86DE740036AA3F /* FeedDeck-Info.plist */,
-				08AE155E2E6BC6E600BBBE1A /* SwiftRSS */,
+				08AE155E2E6BC6E600BBBE1A /* FeedDeck */,
 				08AE155D2E6BC6E600BBBE1A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -80,7 +80,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				08AE155E2E6BC6E600BBBE1A /* SwiftRSS */,
+				08AE155E2E6BC6E600BBBE1A /* FeedDeck */,
 			);
 			name = FeedDeck;
 			packageProductDependencies = (
@@ -110,7 +110,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 08AE15572E6BC6E600BBBE1A /* Build configuration list for PBXProject "SwiftRSS" */;
+			buildConfigurationList = 08AE15572E6BC6E600BBBE1A /* Build configuration list for PBXProject "FeedDeck" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -391,7 +391,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		08AE15572E6BC6E600BBBE1A /* Build configuration list for PBXProject "SwiftRSS" */ = {
+		08AE15572E6BC6E600BBBE1A /* Build configuration list for PBXProject "FeedDeck" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				08AE15652E6BC6E700BBBE1A /* Debug */,
