@@ -35,6 +35,9 @@ struct SettingsView: View {
     @AppStorage("userName") private var userName = ""
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("showGeminiApiKeyField") private var showGeminiApiKeyField = false
+    @AppStorage("geminiApiKey") private var geminiApiKey = ""
+    @State private var easterEggTapCount = 0
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var exportData: Data?
@@ -67,6 +70,12 @@ struct SettingsView: View {
 
                 Section("Reading") {
                     Toggle("Open links in in-app reader view", isOn: $openLinksInReaderView)
+                }
+
+                if showGeminiApiKeyField {
+                    Section("Gemini API") {
+                        SecureField("Gemini API Key", text: $geminiApiKey)
+                    }
                 }
                 
                 Section("Cache") {
@@ -105,6 +114,18 @@ struct SettingsView: View {
                 .listRowBackground(Color.clear)
             }
             .formStyle(.grouped)
+            .safeAreaInset(edge: .bottom) {
+                Color.clear
+                    .frame(height: 44)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        easterEggTapCount += 1
+                        if easterEggTapCount >= 7 {
+                            showGeminiApiKeyField = true
+                            easterEggTapCount = 0
+                        }
+                    }
+            }
             .navigationTitle("Settings")
             .toolbarTitleDisplayMode(.inline)
             #if !os(macOS)

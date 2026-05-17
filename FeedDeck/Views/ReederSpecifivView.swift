@@ -46,7 +46,10 @@ struct ReederSpecificView: View {
         }
         .sheet(isPresented: $showAISheet) {
             if let text = extractedText {
-                AISummaryView(extractedText: text)
+                AISummaryView(
+                    instructions: "You are a helpful assistant that creates concise summaries of articles.",
+                    prompt: "Summarize this article concisely:\n\(text)"
+                )
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
                     #if !os(macOS)

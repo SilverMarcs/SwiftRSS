@@ -21,6 +21,16 @@ struct ArticleListView: View {
     @State private var showingUnreadOnly = false
     @State private var showingMarkAllReadAlert = false
     @State private var isRefreshableInFlight = false
+    @State private var showAISummarySheet = false
+
+    private var todaysArticleTitles: [String] {
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: .now)
+        let end = cal.date(byAdding: .day, value: 1, to: start)!
+        return articles
+            .filter { $0.publishedAt >= start && $0.publishedAt < end }
+            .map(\.title)
+    }
 
     private var articles: [Article] {
         allArticles.filter { article in
@@ -134,7 +144,27 @@ struct ArticleListView: View {
             #else
             ToolbarSpacer(.flexible, placement: .bottomBar)
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            ToolbarSpacer(.flexible, placement: .bottomBar)
             #endif
+
+            ToolbarItem(placement: .platformBar) {
+                Button {
+                    showAISummarySheet = true
+                } label: {
+                    Label("AI Summary", systemImage: "sparkles")
+                }
+                .disabled(todaysArticleTitles.isEmpty)
+            }
+        }
+        .sheet(isPresented: $showAISummarySheet) {
+            let titles = todaysArticleTitles
+            AISummaryView(
+                instructions: "You summarize a list of news article headlines published today. For each important article, write a plain 1-2 sentence paragraph. Do not reference, quote, or repeat the article titles. Separate each summary with a blank line. Skip articles that are not important.",
+                prompt: "Articles published today:\n\n" + titles.map { "- \($0)" }.joined(separator: "\n"),
+                navigationTitle: "Summary of \(filter.displayName)"
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .overlay {
             if store.isRefreshing && !isRefreshableInFlight {
