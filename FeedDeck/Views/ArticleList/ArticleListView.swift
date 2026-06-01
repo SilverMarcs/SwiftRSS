@@ -76,8 +76,6 @@ struct ArticleListView: View {
             .listRowSeparator(.hidden, edges: .top)
             .listRowSeparator(.visible, edges: .bottom)
         }
-        .contentMargins(.top, 4)
-        .contentMargins(.horizontal, 5)
         .navigationTitle(filter.displayName)
         .toolbarTitleDisplayMode(.inline)
         .navigationSubtitle("\(articles.count) articles")

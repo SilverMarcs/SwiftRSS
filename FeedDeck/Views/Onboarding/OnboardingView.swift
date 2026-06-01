@@ -17,6 +17,9 @@ struct OnboardingView: View {
             FeedPickerPage {
                 hasCompletedOnboarding = true
             }
+            #if os(macOS)
+            .frame(width: 450, height: 500)
+            #endif
         } else {
             WelcomePage {
                 showFeedPicker = true

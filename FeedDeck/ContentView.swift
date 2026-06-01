@@ -19,7 +19,7 @@ struct ContentView: View {
 
     @State var showAddFeed = false
     @State var showSettings = false
-    @State private var selectedFilter: ArticleFilter?
+    @State private var selectedFilter: ArticleFilter? = Device.isMacOrPad ? .today : nil
     @State private var selectedArticle: Article?
     @State private var detailPath = NavigationPath()
 
@@ -56,7 +56,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("FeedDeck")
-            .toolbarTitleDisplayMode(.inlineLarge)
+            .toolbarTitleDisplayMode(isIPad ? .inline : .inlineLarge)
             .refreshable {
                 await store.refreshAll()
                 lastRefreshDate = Date.now.timeIntervalSince1970
@@ -74,25 +74,36 @@ struct ContentView: View {
             }
             #else
             .toolbar {
-                ToolbarItem {
-                    Button {
-                        showSettings.toggle()
-                    } label: {
-                        Image(systemName: "gear")
+                if isIPad {
+                    ToolbarItem(placement: .platformBar) {
+                        Button("Settings", systemImage: "gear") {
+                            showSettings.toggle()
+                        }
+                        .labelStyle(.titleAndIcon)
                     }
+                    .matchedTransitionSource(id: "settings", in: transition)
+                } else {
+                    ToolbarItem {
+                        Button("Settings", systemImage: "gear") {
+                            showSettings.toggle()
+                        }
+                    }
+                    .matchedTransitionSource(id: "settings", in: transition)
                 }
-                .matchedTransitionSource(id: "settings", in: transition)
 
                 ToolbarSpacer(.flexible, placement: .platformBar)
 
                 ToolbarItem(placement: .platformBar) {
-                    Button {
-                        showAddFeed.toggle()
-                    } label: {
-                        Image(systemName: "plus")
-                            .foregroundStyle(.white)
+                    if isIPad {
+                        Button("Add Feed", systemImage: "plus") {
+                            showAddFeed.toggle()
+                        }
+                    } else {
+                        Button("Add Feed", systemImage: "plus") {
+                            showAddFeed.toggle()
+                        }
+                        .buttonStyle(.glassProminent)
                     }
-                    .buttonStyle(.glassProminent)
                 }
                 .matchedTransitionSource(id: "add-feed", in: transition)
             }

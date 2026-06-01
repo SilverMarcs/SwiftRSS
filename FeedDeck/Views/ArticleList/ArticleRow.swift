@@ -16,11 +16,11 @@ struct ArticleRow: View {
 
     var body: some View {
         Group {
-#if os(macOS)
-            compactBody
-#else
-            standardBody
-#endif
+            if isMacOrPad {
+                compactBody
+            } else {
+                standardBody
+            }
         }
         .opacity(article.isRead ? 0.7 : 1)
         .contextMenu {
@@ -45,7 +45,7 @@ struct ArticleRow: View {
                 CachedAsyncImage(url: imageURL, targetSize: 400)
                     .aspectRatio(16/9, contentMode: .fill)
                     .clipped()
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 10))
             }
 
             Text(article.title)
@@ -106,7 +106,8 @@ struct ArticleRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(article.title)
                     .lineLimit(2)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.footnote)
+                    .fontWeight(.semibold)
                 
                 Spacer()
 
@@ -120,13 +121,15 @@ struct ArticleRow: View {
                             .foregroundStyle(.orange)
                     }
                 }
-                .font(.system(size: 11))
+                .font(.caption2)
                 .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 0)
         }
+        #if os(macOS)
         .padding(5)
+        #endif
     }
 
     var readButton: some View {

@@ -1,5 +1,5 @@
 {
-  "originHash" : "98d27a98f524a5a91e6d76d620c1de460d42a69e56e3639e9406bb537fd4837c",
+  "originHash" : "26d75ad88d9ae4e13c97aa57dd54795664d5414f5697184c16ed1e66cd0767f4",
   "pins" : [
     {
       "identity" : "fuzi",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/SilverMarcs/reeeed",
       "state" : {
         "branch" : "main",
-        "revision" : "5a7bd52e8f17f63120b119a6e9d6b7f8c389d7fc"
+        "revision" : "5f353e93101ecb5e1115802c236daffccd30f2c4"
       }
     },
     {
