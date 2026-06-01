@@ -34,6 +34,9 @@ struct ArticleListView: View {
 
     private var articles: [Article] {
         allArticles.filter { article in
+            // Skip orphaned articles with no feed
+            guard article.feed != nil else { return false }
+
             var matches = true
 
             switch filter {

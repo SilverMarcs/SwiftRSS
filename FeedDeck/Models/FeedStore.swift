@@ -72,6 +72,11 @@ final class FeedStore {
             existing.title = item.title
             existing.author = item.author
             existing.featuredImageURL = item.featuredImageURL
+
+            // Re-associate orphaned articles whose feed relationship was lost
+            if existing.feed == nil {
+                existing.feed = feed
+            }
         } else {
             modelContext.insert(Article(
                 feed: feed,
