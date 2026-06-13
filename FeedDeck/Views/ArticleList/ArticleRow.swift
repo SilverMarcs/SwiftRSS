@@ -106,7 +106,7 @@ struct ArticleRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(article.title)
                     .lineLimit(2)
-                    .font(.footnote)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
                 
                 Spacer()
@@ -121,7 +121,7 @@ struct ArticleRow: View {
                             .foregroundStyle(.orange)
                     }
                 }
-                .font(.caption2)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
             }
 

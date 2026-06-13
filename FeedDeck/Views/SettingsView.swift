@@ -84,7 +84,7 @@ struct SettingsView: View {
                     Button {
                         showDeleteOldArticlesAlert = true
                     } label: {
-                        Label("Remove Articles Older Than a Week", systemImage: "clock.badge.xmark")
+                        Label("Keep Only 50 Most Recent Articles", systemImage: "clock.badge.xmark")
                             .contentShape(.rect)
                     }
                     .alert("Remove Old Articles", isPresented: $showDeleteOldArticlesAlert) {
@@ -93,7 +93,7 @@ struct SettingsView: View {
                         }
                         Button("Cancel", role: .cancel) { }
                     } message: {
-                        Text("This will permanently delete all articles published more than 7 days ago that are not starred.")
+                        Text("This will permanently delete all but the 50 most recent articles. Starred articles are never deleted.")
                     }
                 }
                 #if DEBUG
@@ -202,9 +202,15 @@ struct SettingsView: View {
     }
 
     private func deleteOldArticles() {
-        let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now)!
-        let predicate = #Predicate<Article> { $0.publishedAt < cutoff && !$0.isStarred }
-        try? modelContext.delete(model: Article.self, where: predicate)
+        let keepCount = 50
+        guard let feeds = try? modelContext.fetch(FetchDescriptor<Feed>()) else { return }
+        for feed in feeds {
+            let articles = (feed.articles ?? []).sorted { $0.publishedAt > $1.publishedAt }
+            guard articles.count > keepCount else { continue }
+            for article in articles[keepCount...] where !article.isStarred {
+                modelContext.delete(article)
+            }
+        }
         try? modelContext.save()
     }
 }
