@@ -10,16 +10,15 @@ import Fuzi
 
 struct RSSParser: FeedParser {
     let baseURL: URL
-    private let maxItems: Int = 50
     private let imgRegex: NSRegularExpression? = {
         try? NSRegularExpression(pattern: #"<img[^>]+src=["\']([^"\']+)["\']"#, options: .caseInsensitive)
     }()
     
     func parseItems(from document: Fuzi.XMLDocument) throws -> [FeedItem] {
-        var itemNodes = Array(document.xpath("/rss/channel/item").prefix(maxItems))
+        var itemNodes = Array(document.xpath("/rss/channel/item"))
         // RSS 1.0 (RDF) — items are at the root level, not nested in channel
         if itemNodes.isEmpty {
-            itemNodes = Array(document.xpath("//*[local-name()='item']").prefix(maxItems))
+            itemNodes = Array(document.xpath("//*[local-name()='item']"))
         }
         return itemNodes.map { parseItem($0) }
     }

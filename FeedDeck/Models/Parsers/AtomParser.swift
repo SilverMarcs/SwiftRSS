@@ -10,12 +10,11 @@ import Fuzi
 
 struct AtomParser: FeedParser {
     let baseURL: URL
-    private let maxItems: Int = 50
     
     func parseItems(from document: Fuzi.XMLDocument) throws -> [FeedItem] {
         let entryNodes = document.xpath("/feed/entry")
         let entries = entryNodes.isEmpty ? document.xpath("//*[local-name()='entry']") : entryNodes
-        return entries.prefix(maxItems).map { parseItem($0) }
+        return entries.map { parseItem($0) }
     }
     
     func parseMeta(from document: Fuzi.XMLDocument) -> FeedMeta {

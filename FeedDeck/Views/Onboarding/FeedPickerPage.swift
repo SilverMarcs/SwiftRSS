@@ -108,7 +108,6 @@ struct FeedPickerPage: View {
                 try? await store.addFeed(url: url)
             }
         }
-        await store.refreshAll()
         onComplete()
     }
 }

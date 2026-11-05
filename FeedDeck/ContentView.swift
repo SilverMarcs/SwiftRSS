@@ -55,7 +55,7 @@ struct ContentView: View {
                     .onDelete(perform: deleteFeeds)
                 }
             }
-            .navigationTitle("FeedDeck")
+            .navigationTitle("Feed")
             .toolbarTitleDisplayMode(isIPad ? .inline : .inlineLarge)
             .refreshable {
                 await store.refreshAll()
@@ -134,8 +134,6 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showAddFeed) {
-            Task { await store.refreshAll() }
-        } content: {
             DiscoverFeedsView()
                 #if os(macOS)
                 .frame(minWidth: 500, idealWidth: 600, minHeight: 500, idealHeight: 600)

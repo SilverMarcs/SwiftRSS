@@ -9,8 +9,10 @@ import SwiftUI
 import SwiftData
 
 @Observable
+@MainActor
 final class FeedStore {
-    var isRefreshing = false
+    private var activeRefreshes = 0
+    var isRefreshing: Bool { activeRefreshes > 0 }
 
     @ObservationIgnored
     let modelContext: ModelContext
@@ -22,83 +24,104 @@ final class FeedStore {
     // MARK: - Refresh
 
     func refreshAll() async {
-        isRefreshing = true
-        defer { isRefreshing = false }
+        activeRefreshes += 1
+        defer { activeRefreshes -= 1 }
 
         let feeds: [Feed]
         do {
             feeds = try modelContext.fetch(FetchDescriptor<Feed>())
         } catch { return }
 
-        let feedURLs = feeds.compactMap { feed -> (String, URL)? in
-            guard let url = feed.url else { return nil }
-            return (url.absoluteString, url)
-        }
+        let feedURLs = Set(feeds.compactMap(\.url))
 
-        // Fetch articles from network concurrently
-        var fetchedItems: [(String, [FeedItem])] = []
-
-        await withTaskGroup(of: (String, [FeedItem]).self) { group in
-            for (urlString, url) in feedURLs {
+        await withTaskGroup(of: (URL, FetchedFeed?).self) { group in
+            for url in feedURLs {
                 group.addTask {
-                    let items = (try? await FeedService.fetchArticles(url: url)) ?? []
-                    return (urlString, items)
+                    let result = try? await FeedService.fetch(url: url)
+                    return (url, result)
                 }
             }
-            for await result in group {
-                fetchedItems.append(result)
+            for await (url, result) in group {
+                guard !Task.isCancelled, let result else { continue }
+
+                for feed in feeds where feed.url == url && !feed.isDeleted && feed.modelContext != nil {
+                    mergeArticles(result.items, into: feed)
+                }
             }
         }
-
-        // Merge into database
-        let feedsByURL = Dictionary(uniqueKeysWithValues: feeds.compactMap { feed -> (String, Feed)? in
-            guard let url = feed.url else { return nil }
-            return (url.absoluteString, feed)
-        })
-
-        for (urlString, items) in fetchedItems {
-            guard let feed = feedsByURL[urlString] else { continue }
-            for item in items {
-                upsertArticle(item, feed: feed)
-            }
-        }
+        try? modelContext.save()
     }
 
-    private func upsertArticle(_ item: FeedItem, feed: Feed) {
-        let normID = URLNormalizer.normalizedArticleID(from: item.link)
-        let descriptor = FetchDescriptor<Article>(predicate: #Predicate { $0.articleID == normID })
+    private func mergeArticles(_ items: [FeedItem], into feed: Feed) {
+        let storedArticles = feed.articles ?? []
+        let storedByID = Dictionary(
+            storedArticles.map { ($0.articleID, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let fetchedByID = Dictionary(
+            items.map { (URLNormalizer.normalizedArticleID(from: $0.link), $0) },
+            uniquingKeysWith: { _, last in last }
+        )
 
-        if let existing = try? modelContext.fetch(descriptor).first {
-            existing.title = item.title
-            existing.author = item.author
-            existing.featuredImageURL = item.featuredImageURL
+        var datesByID = storedByID.mapValues(\.publishedAt)
+        for (id, item) in fetchedByID {
+            // Undated entries keep a stable position across refreshes.
+            datesByID[id] = item.publishedAt ?? datesByID[id] ?? .distantPast
+        }
 
-            // Re-associate orphaned articles whose feed relationship was lost
-            if existing.feed == nil {
-                existing.feed = feed
+        let retainedIDs: Set<String>
+        if UserDefaults.standard.bool(forKey: "limitArticlesPerFeed") {
+            let newest = datesByID.sorted {
+                $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value
             }
+            retainedIDs = Set(newest.prefix(50).map(\.key))
         } else {
-            modelContext.insert(Article(
-                feed: feed,
-                link: item.link,
-                title: item.title,
-                author: item.author,
-                featuredImageURL: item.featuredImageURL,
-                publishedAt: item.publishedAt ?? .now
-            ))
+            retainedIDs = Set(datesByID.keys)
+        }
+
+        for (id, item) in fetchedByID where retainedIDs.contains(id) {
+            let publishedAt = datesByID[id] ?? .distantPast
+            if let article = storedByID[id] {
+                article.link = item.link
+                article.title = item.title
+                article.author = item.author
+                article.featuredImageURL = item.featuredImageURL
+                article.publishedAt = publishedAt
+            } else {
+                modelContext.insert(Article(
+                    feed: feed,
+                    link: item.link,
+                    title: item.title,
+                    author: item.author,
+                    featuredImageURL: item.featuredImageURL,
+                    publishedAt: publishedAt
+                ))
+            }
+        }
+
+        for article in storedArticles where !retainedIDs.contains(article.articleID) || storedByID[article.articleID] !== article {
+            modelContext.delete(article)
         }
     }
 
     // MARK: - Feed Management
 
     func addFeed(url: URL) async throws {
-        let meta = try await FeedService.fetchMeta(url: url)
-        let title = meta.title ?? url.host ?? "Untitled Feed"
-
         let descriptor = FetchDescriptor<Feed>(predicate: #Predicate { $0.url == url })
-        guard (try? modelContext.fetch(descriptor))?.isEmpty ?? true else { return }
+        guard try modelContext.fetch(descriptor).isEmpty else { return }
 
-        modelContext.insert(Feed(title: title, url: url, thumbnailURL: meta.thumbnailURL))
+        let result = try await FeedService.fetch(url: url)
+        try Task.checkCancellation()
+        guard try modelContext.fetch(descriptor).isEmpty else { return }
+
+        let feed = Feed(
+            title: result.metadata.title ?? url.host ?? "Untitled Feed",
+            url: url,
+            thumbnailURL: result.metadata.thumbnailURL
+        )
+        modelContext.insert(feed)
+        mergeArticles(result.items, into: feed)
+        try modelContext.save()
     }
 
     func removeFeed(url: URL) {
@@ -116,6 +139,5 @@ final class FeedStore {
         for url in urls {
             try await addFeed(url: url)
         }
-        await refreshAll()
     }
 }

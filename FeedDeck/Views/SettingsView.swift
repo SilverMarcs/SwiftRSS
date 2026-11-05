@@ -35,14 +35,13 @@ struct SettingsView: View {
     @AppStorage("userName") private var userName = ""
     @AppStorage("openLinksInReaderView") private var openLinksInReaderView = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @AppStorage("showGeminiApiKeyField") private var showGeminiApiKeyField = false
-    @AppStorage("geminiApiKey") private var geminiApiKey = ""
+    @AppStorage("showOpenAIApiKeyField") private var showOpenAIApiKeyField = false
+    @AppStorage("limitArticlesPerFeed") private var limitArticlesPerFeed = false
     @State private var easterEggTapCount = 0
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var exportData: Data?
     @State private var importError: String?
-    @State private var showDeleteOldArticlesAlert = false
 
     var body: some View {
         NavigationStack {
@@ -72,29 +71,16 @@ struct SettingsView: View {
                     Toggle("Open links in in-app reader view", isOn: $openLinksInReaderView)
                 }
 
-                if showGeminiApiKeyField {
-                    Section("Gemini API") {
-                        SecureField("Gemini API Key", text: $geminiApiKey)
+                if showOpenAIApiKeyField {
+                    Section("OpenAI API") {
+                        OpenAIAPIKeyField()
                     }
                 }
                 
                 Section("Cache") {
                     CacheManagerView()
 
-                    Button {
-                        showDeleteOldArticlesAlert = true
-                    } label: {
-                        Label("Keep Only 50 Most Recent Articles", systemImage: "clock.badge.xmark")
-                            .contentShape(.rect)
-                    }
-                    .alert("Remove Old Articles", isPresented: $showDeleteOldArticlesAlert) {
-                        Button("Remove", role: .destructive) {
-                            deleteOldArticles()
-                        }
-                        Button("Cancel", role: .cancel) { }
-                    } message: {
-                        Text("This will permanently delete all but the 50 most recent articles. Starred articles are never deleted.")
-                    }
+                    Toggle("Keep latest 50 per feed", isOn: $limitArticlesPerFeed)
                 }
                 #if DEBUG
                 Section("Debug") {
@@ -121,7 +107,7 @@ struct SettingsView: View {
                     .onTapGesture {
                         easterEggTapCount += 1
                         if easterEggTapCount >= 7 {
-                            showGeminiApiKeyField = true
+                            showOpenAIApiKeyField = true
                             easterEggTapCount = 0
                         }
                     }
@@ -199,18 +185,5 @@ struct SettingsView: View {
         }
         xml += "</body>\n</opml>"
         return Data(xml.utf8)
-    }
-
-    private func deleteOldArticles() {
-        let keepCount = 50
-        guard let feeds = try? modelContext.fetch(FetchDescriptor<Feed>()) else { return }
-        for feed in feeds {
-            let articles = (feed.articles ?? []).sorted { $0.publishedAt > $1.publishedAt }
-            guard articles.count > keepCount else { continue }
-            for article in articles[keepCount...] where !article.isStarred {
-                modelContext.delete(article)
-            }
-        }
-        try? modelContext.save()
     }
 }
